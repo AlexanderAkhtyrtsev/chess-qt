@@ -1,9 +1,11 @@
 #pragma once
 #include <QtWidgets>
-#include "board.h"
+#include "game/board.h"
 #include "graphicsview.h"
-class GraphicsView;
+#include "sidebar.h"
 
+class GraphicsView;
+class Sidebar;
 
 class MainWindow : public QWidget
 {
@@ -14,7 +16,7 @@ public:
     ~MainWindow();
     GraphicsView *view;
     Board* board;
-    QHBoxLayout *hbl;
+    Sidebar *sidebar;
 protected:
     void resizeEvent(QResizeEvent *);
     void keyPressEvent(QKeyEvent *);

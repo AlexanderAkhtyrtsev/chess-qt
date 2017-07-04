@@ -2,13 +2,13 @@
 #include "figure.h"
 
 
+
 Board::Board(QWidget* parent) :
     QGraphicsScene(parent)
 {
     grid_size = parent->width() / 8;
-    setSceneRect(0,0,8*grid_size,8*grid_size);
-
-    chess_tiles = new QPixmap(":/chess.png");
+    setSceneRect(0, 0, 8*grid_size, 8*grid_size);
+    chess_tiles = new QPixmap(":/img/chess.png");
 
     PaintGrids();
 
@@ -40,19 +40,26 @@ Board::Board(QWidget* parent) :
              figures->push_back(temp_fig);
              (temp_fig->is_white ? figures_w : figures_b)->push_back(temp_fig);
          }
-//*
+
     King[1] = figures->at(4);
     King[0] = figures->at(28);
-//*/
-    /*
-     King[1] = figures->at(0);
-     King[0] = figures->at(3);
-     //*/
 
      for(unsigned i=0; i<figures->size(); i++)
          addItem(figures->at(i));
 
 }
+
+Board::~Board()
+{
+    delete chess_tiles;
+    delete figures;
+    delete figures_w;
+    delete figures_b;
+   // delete grids;
+}
+
+
+
 
 void Board::update_data()
 {
@@ -132,6 +139,19 @@ void Board::undoMove()
    ResetHighligtedGrids();
 }
 
+void Board::newGame()
+{
+    selected = 0;
+    move  = true; // true - white
+    reverse = false;
+    figures_selectable = true;
+    moves->clear();
+    for(vector<Figure *>::iterator i = figures->begin(); i != figures->end(); i++)
+    {
+        (*i)->in_game = true;
+    }
+}
+
 
 
 Board *Board::ResetHighligtedGrids()
@@ -169,7 +189,8 @@ void Board::ReplaceElements()
 {
     for(unsigned i=0; i<8; i++)
         for(unsigned j=0; j<8; j++)
-            grids[i][j]->setPos(grid_size * i, grid_size * (reverse ? j : 7-j));
+            grids[i][j]->setPos(grid_size * i, grid_size * (2 + (reverse ? j : 7-j)));
+
     for(unsigned i=0; i<figures->size(); i++)
     {
         Figure* f = figures->at(i);

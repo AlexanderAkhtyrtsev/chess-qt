@@ -1,5 +1,4 @@
 #include "grid.h"
-#include "mainwindow.h"
 
 Grid::Grid(bool w, int _x, int _y, Board *_board) : QGraphicsItem()
 {
@@ -17,6 +16,11 @@ Grid::Grid(bool w, int _x, int _y, Board *_board) : QGraphicsItem()
 
     setZValue(0);
     setPos(x*board->grid_size, (board->reverse ? y : 7-y)*board->grid_size);
+}
+
+Grid::~Grid()
+{
+
 }
 
 void Grid::Highlight(bool h)
@@ -70,7 +74,6 @@ bool Grid::empty() const
 
 void Grid::paint(QPainter *painter, const QStyleOptionGraphicsItem*, QWidget*)
 {
-
     QBrush brush(QColor(is_white ? QColor(200, 200, 200) : QColor(120, 120, 120)));
     painter->save();
         painter->setBrush(brush);
@@ -97,6 +100,7 @@ void Grid::paint(QPainter *painter, const QStyleOptionGraphicsItem*, QWidget*)
                painter->drawRect(rect);
         painter->restore();
     }
+
 }
 
 

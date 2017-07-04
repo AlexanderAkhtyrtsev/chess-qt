@@ -13,6 +13,7 @@ class Board : public QGraphicsScene
 
 public:
     Board(QWidget* = 0);
+    ~Board();
     int grid_size;
     bool move;
     bool reverse;
@@ -31,6 +32,7 @@ public:
     bool is_check(bool w);
     void check_game();
     void undoMove();
+    void newGame();
     // QGraphicsScene interface
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
@@ -39,8 +41,9 @@ protected:
 class FigureMove
 {
 public:
-    Figure *figure, *removed;
-    Grid *from, *to;
-    bool extra;
     FigureMove(Figure *_figure, Grid *_from, Grid *_to, Figure *rem , bool _extra = false);
+    Figure *figure;
+    Grid *from, *to;
+    Figure *removed;
+    bool extra;
 };

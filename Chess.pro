@@ -12,21 +12,23 @@ TARGET = Chess
 TEMPLATE = app
 
 
-SOURCES += main.cpp\
-        mainwindow.cpp \
-    grid.cpp \
-    figure.cpp \
-    board.cpp \
-    graphicsview.cpp
-
-HEADERS  += mainwindow.h \
-    grid.h \
-    board.h \
-    graphicsview.h \
-    figure.h
-
-OTHER_FILES +=
-
 RESOURCES += \
     res.qrc
+
+HEADERS += \
+    game/board.h \
+    game/figure.h \
+    game/grid.h \
+    gui/graphicsview.h \
+    gui/mainwindow.h \
+    gui/sidebar.h
+
+SOURCES += \
+    game/board.cpp \
+    game/grid.cpp \
+    game/figure.cpp \
+    gui/graphicsview.cpp \
+    gui/mainwindow.cpp \
+    main.cpp \
+    gui/sidebar.cpp
 

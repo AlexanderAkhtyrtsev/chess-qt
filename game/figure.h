@@ -1,7 +1,7 @@
 #ifndef FIGURE_H
 #define FIGURE_H
 
-#include "mainwindow.h"
+#include "gui/mainwindow.h"
 #include "board.h"
 #include "grid.h"
 

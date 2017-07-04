@@ -1,7 +1,6 @@
-#ifndef GRID_H
-#define GRID_H
+#pragma once
 
-#include "mainwindow.h"
+#include "gui/mainwindow.h"
 #include "board.h"
 #include "figure.h"
 
@@ -12,6 +11,7 @@ public:
     bool is_white, light;
     int x, y;
     Grid(bool w = false, int _x = 0, int _y = 0, Board* = 0);
+    ~Grid();
     void Highlight(bool = true);
     // QGraphicsItem interface
     QRectF boundingRect() const;
@@ -25,5 +25,3 @@ public:
     void paint(QPainter *, const QStyleOptionGraphicsItem *, QWidget *);
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
 };
-
-#endif // GRID_H

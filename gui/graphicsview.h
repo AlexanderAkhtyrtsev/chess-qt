@@ -1,5 +1,5 @@
 #pragma once
-#include "board.h"
+#include "game/board.h"
 
 class GraphicsView : public QGraphicsView
 {
