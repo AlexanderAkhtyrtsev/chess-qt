@@ -1,7 +1,18 @@
 #include "board.h"
 #include "figure.h"
+#include "freefigures.h"
 
 
+const int Board::fig_pos[8][8] = {
+    { 5, 4, 3, 2, 1, 3, 4, 5 },
+    { 6, 6, 6, 6, 6, 6, 6, 6 },
+    { 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0 },
+    {-6,-6,-6,-6,-6,-6,-6,-6 },
+    {-5,-4,-3,-2,-1,-3,-4,-5 }
+};
 
 Board::Board(QWidget* parent) :
     QGraphicsScene(parent)
@@ -12,31 +23,25 @@ Board::Board(QWidget* parent) :
 
     PaintGrids();
 
-    selected = 0;
-    move  = true; // true - white
-    reverse = false;
-    figures_selectable = true;
-    figures     = new vector<Figure *>;
-    figures_w   = new vector<Figure *>;
-    figures_b   = new vector<Figure *>;
-    moves       = new vector<FigureMove *>;
-    int fig[8][8] = {
-        { 5, 4, 3, 2, 1, 3, 4, 5 },
-        { 6, 6, 6, 6, 6, 6, 6, 6 },
-        { 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0 },
-        {-6,-6,-6,-6,-6,-6,-6,-6 },
-        {-5,-4,-3,-2,-1,-3,-4,-5 }
-    };
+    selected            = 0;
+    move                = true; // true - white
+    _reverse            = false;
+    figures_selectable  = true;
+    figures             = new vector<Figure     *>;
+    figures_w           = new vector<Figure     *>;
+    figures_b           = new vector<Figure     *>;
+    moves               = new vector<FigureMove *>;
+
+
+    free_figures[0] = new FreeFigures(this);
+    free_figures[1] = new FreeFigures(this); // white
 
     Figure *temp_fig;
      for(int i=0; i<8; i++)
          for(int j=0; j<8; j++)
          {
-             if ( !fig[i][j] ) continue;
-             temp_fig = new Figure((Figure::Type) (fig[i][j] > 0 ? fig[i][j] : -fig[i][j]), fig[i][j] > 0, grids[j][i], this);
+             if ( !fig_pos[i][j] ) continue;
+             temp_fig = new Figure((Figure::Type) (fig_pos[i][j] > 0 ? fig_pos[i][j] : -fig_pos[i][j]), fig_pos[i][j] > 0, grids[j][i], this);
              figures->push_back(temp_fig);
              (temp_fig->is_white ? figures_w : figures_b)->push_back(temp_fig);
          }
@@ -55,18 +60,35 @@ Board::~Board()
     delete figures;
     delete figures_w;
     delete figures_b;
-   // delete grids;
+    // delete grids;
 }
 
-
-
-
-void Board::update_data()
+// TODO: check this one
+void Board::newGame()
 {
-    for(int i=0; i<8; i++)
-        for(int j=0; j<8; j++)
-            data[i][j] = grids[i][j]->empty() ? 0 : grids[i][j]->figure->type;
+    selected = 0;
+    move  = true; // true - white
+    figures_selectable = true;
+    moves->clear();
+    reverse(!move);
+    free_figures[0] = new FreeFigures(this);
+    free_figures[1] = new FreeFigures(this);
+
+    Figure *p_figure;
+    int f_count = 0;
+    for(int x = 0; x < 8; x++)
+    {
+        for(int y=0; y<8; y++)
+        {
+            if ( !fig_pos[x][y] ) continue;
+            p_figure = figures->at(f_count);
+            p_figure->in_game = true;
+            p_figure->placeTo(grids[y][x]);
+            f_count ++;
+        }
+    }
 }
+
 
 bool Board::is_check(bool w)
 {
@@ -92,7 +114,7 @@ void Board::check_game()
 
     // TODO : check if draw
 
-    if (game_over) QMessageBox::information(0, QString("OOPS"), QString("GameOver"), QMessageBox::Ok );
+    if (game_over) QMessageBox::information(0, QString("OOPS"), QString("Check mate!"), QMessageBox::Ok );
 }
 
 void Board::undoMove()
@@ -131,25 +153,14 @@ void Board::undoMove()
             offsetY = last->figure->is_white ? -1 : 1;
         last->removed->in_game = true;
         last->removed->placeTo(last->to->Offset(0, offsetY));
-        last->removed->show();
+        //last->removed->show();
+        free_figures[last->removed->is_white]->removeFigure(last->removed);
     }
    last->figure->moves->erase(last->figure->moves->end()-1);
    moves->erase( moves->end() - 1 );
    move = !move;
+   if (!moves->size()) reverse( !move );
    ResetHighligtedGrids();
-}
-
-void Board::newGame()
-{
-    selected = 0;
-    move  = true; // true - white
-    reverse = false;
-    figures_selectable = true;
-    moves->clear();
-    for(vector<Figure *>::iterator i = figures->begin(); i != figures->end(); i++)
-    {
-        (*i)->in_game = true;
-    }
 }
 
 
@@ -162,6 +173,20 @@ Board *Board::ResetHighligtedGrids()
     if ( is_check(move) )
          King[move]->grid->Highlight();
     return this;
+}
+
+bool Board::reverse() const
+{
+    return _reverse;
+}
+
+bool Board::reverse(bool __reverse)
+{
+    _reverse = __reverse;
+    ReplaceElements();
+    free_figures[0]->update();
+    free_figures[1]->update();
+    return _reverse;
 }
 
 void Board::PaintGrids(bool rm)
@@ -189,13 +214,15 @@ void Board::ReplaceElements()
 {
     for(unsigned i=0; i<8; i++)
         for(unsigned j=0; j<8; j++)
-            grids[i][j]->setPos(grid_size * i, grid_size * (2 + (reverse ? j : 7-j)));
+            grids[i][j]->setPos(grid_size * i, grid_size * (2 + (_reverse ? j : 7-j)));
 
     for(unsigned i=0; i<figures->size(); i++)
     {
         Figure* f = figures->at(i);
         if ( f->in_game ) f->placeTo(f->grid);
     }
+    free_figures[0]->update();
+    free_figures[1]->update();
 }
 
 

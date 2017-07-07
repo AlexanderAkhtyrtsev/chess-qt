@@ -21,7 +21,8 @@ HEADERS += \
     game/grid.h \
     gui/graphicsview.h \
     gui/mainwindow.h \
-    gui/sidebar.h
+    gui/sidebar.h \
+    game/freefigures.h
 
 SOURCES += \
     game/board.cpp \
@@ -30,5 +31,6 @@ SOURCES += \
     gui/graphicsview.cpp \
     gui/mainwindow.cpp \
     main.cpp \
-    gui/sidebar.cpp
+    gui/sidebar.cpp \
+    game/freefigures.cpp
 

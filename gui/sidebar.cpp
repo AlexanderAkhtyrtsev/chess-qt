@@ -18,9 +18,9 @@ Sidebar::~Sidebar()
 
 void Sidebar::Show()
 {
-    move(-width(),0);
+    move(-width(), 0);
     show();
-    anim->setStartValue(QPoint(-width(),0));
+    anim->setStartValue( QPoint(-width(), 0) );
     anim->setEndValue(QPoint(0,0));
     anim->setDuration(250);
     anim->start();
@@ -36,9 +36,8 @@ void Sidebar::Hide()
 
 void Sidebar::Toggle()
 {
-    if( pos().x() == 0 )
-        Hide();
-    else Show();
+    if( pos().x() ) Show();
+    else Hide();
 }
 
 void Sidebar::paintEvent(QPaintEvent *)

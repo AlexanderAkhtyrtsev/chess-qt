@@ -10,7 +10,7 @@ MainWindow::MainWindow(QWidget *parent)
     view->setScene(board);
     sidebar = new Sidebar(this);
     sidebar->hide();
-    resize(500,500);
+    resize(320,480);
 }
 
 
@@ -22,12 +22,26 @@ MainWindow::~MainWindow()
 
 void MainWindow::resizeEvent(QResizeEvent *)
 {
-    view->resize(width(),height());
-    sidebar->resize(sidebar->width(), height());
+    int w = width();
+    int h = height();
+    view->resize(w, h);
+    int sw;
+    if ( w <= 320 ) sw = w;
+    else sw = w / 1.5;
+    sidebar->resize(sw, h);
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *pe)
 {
-    if ( pe->key() == Qt::Key_Backspace || pe->key() == Qt::Key_Back ) board->undoMove();
-    else if (pe->key() == Qt::Key_Escape ) sidebar->Toggle();
+    switch (pe->key())
+    {
+    case Qt::Key_Backspace:
+    case Qt::Key_Back:
+        board->undoMove();
+        break;
+    case Qt::Key_Escape:
+        sidebar->Toggle();
+        break;
+    }
+    pe->accept();
 }

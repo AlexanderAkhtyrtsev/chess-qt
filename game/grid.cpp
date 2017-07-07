@@ -15,7 +15,7 @@ Grid::Grid(bool w, int _x, int _y, Board *_board) : QGraphicsItem()
     else if (y > 7) y = 7;
 
     setZValue(0);
-    setPos(x*board->grid_size, (board->reverse ? y : 7-y)*board->grid_size);
+    setPos(x*board->grid_size, (board->reverse() ? y : 7-y)*board->grid_size);
 }
 
 Grid::~Grid()

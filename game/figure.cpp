@@ -1,5 +1,5 @@
 #include "figure.h"
-
+#include "freefigures.h"
 
 
 Figure::Figure(Figure::Type _type, bool white, Grid *place, Board *_board)
@@ -29,7 +29,7 @@ void Figure::placeTo(Grid *gridp)
 void Figure::move(Grid *to)
 {
    if( !to->empty() && to->figure->is_white == is_white ) return;
-    board->reverse = board->move;
+    board->reverse(board->move);
     board->ReplaceElements();
 
     anim = new QPropertyAnimation(this, "pos");
@@ -72,7 +72,7 @@ bool Figure::move_valid(Grid *g)
 
 void Figure::Select()
 {
-    if( board->move != is_white ||  !board->figures_selectable ) return;
+    if( !in_game || board->move != is_white ||  !board->figures_selectable ) return;
         board->ResetHighligtedGrids();
     if ( !getGrids().size() ) return;
         board->selected = this;
@@ -88,7 +88,7 @@ void Figure::Remove()
     grid->figure = 0;
     grid = 0;
     in_game = false;
-    hide();
+    board->free_figures[is_white]->addFigure(this);
 }
 
 vector<Grid *> Figure::getGrids(bool getAttacked)
@@ -435,6 +435,7 @@ void Figure::moveEnd()
 
 void Figure::mousePressEvent(QGraphicsSceneMouseEvent *pe)
 {
+    if ( pe->button() != Qt::LeftButton ) return;
     if ( board->move == is_white ) Select();
     QGraphicsItem::mousePressEvent(pe);
 }
