@@ -84,9 +84,13 @@ void Board::newGame()
             p_figure = figures->at(f_count);
             p_figure->in_game = true;
             p_figure->placeTo(grids[y][x]);
+            if (p_figure->type == Figure::Queen && qAbs( fig_pos[x][y] ) == Figure::Pawn ){
+                p_figure->type = Figure::Pawn;
+            }
             f_count ++;
         }
     }
+    ResetHighligtedGrids();
 }
 
 
@@ -97,8 +101,10 @@ bool Board::is_check(bool w)
 
 void Board::check_game()
 {
+    QString messagebox_text = "Check mate!";
     if ( is_check(0) ) King[0]->grid->Highlight();
-    if ( is_check(1) ) King[1]->grid->Highlight();
+    else if ( is_check(1) ) King[1]->grid->Highlight();
+    else messagebox_text = "Draw!";
     bool game_over = true;
     vector<Figure *> *figures = move ? figures_w : figures_b;
     Figure *temp;
@@ -114,7 +120,10 @@ void Board::check_game()
 
     // TODO : check if draw
 
-    if (game_over) QMessageBox::information(0, QString("OOPS"), QString("Check mate!"), QMessageBox::Ok );
+    if (game_over) {
+        window->box->setText(messagebox_text);
+        window->box->show();
+    }
 }
 
 void Board::undoMove()

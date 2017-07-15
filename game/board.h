@@ -11,7 +11,7 @@ class Figure;
 class Grid;
 class FigureMove;
 class FreeFigures;
-
+class MainWindow;
 
 class Board : public QGraphicsScene
 {
@@ -40,6 +40,7 @@ public:
     vector<Figure *> *figures_w, *figures_b;
     Figure *selected, *King[2];
     FreeFigures *free_figures[2];
+    MainWindow *window;
     // QGraphicsScene interface
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);

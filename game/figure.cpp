@@ -38,13 +38,15 @@ void Figure::move(Grid *to)
     anim->setEndValue(to->pos());
     anim->setEasingCurve(QEasingCurve::InQuad);
     anim->start();
-    setZValue(2);
+
+
     next_move = to;
     board->selected = 0;
     board->move = !board->move;
     board->figures_selectable = false;
     QObject::connect(anim, SIGNAL(finished()), SLOT(moveEnd()));
     board->ResetHighligtedGrids();
+    setZValue(2);
 }
 
 bool Figure::move_valid(Grid *g)
@@ -191,17 +193,25 @@ vector<Grid *> Figure::getGrids(bool getAttacked)
                 Figure *Rook;
                 Grid *grd;
                 int y = grid->y;
-                if ( !board->grids[0][y]->empty() && (Rook = board->grids[0][y]->figure)->type == Figure::Rook &&
+                if ( !board->grids[0][y]->empty() &&
+                     (Rook = board->grids[0][y]->figure)->type == Figure::Rook &&
                      !Rook->moved() &&
                      (grd=Rook->grid->Offset(1, 0))->empty() && !grd->is_attacked(!is_white) &&
                      (grd=Rook->grid->Offset(2, 0))->empty() && !grd->is_attacked(!is_white) &&
                      (grd=Rook->grid->Offset(3, 0))->empty() && !grd->is_attacked(!is_white)
-                     ) moves.push_back(grid->Offset(-2, 0));
-                else if ( !board->grids[7][y]->empty() && (Rook = board->grids[7][y]->figure)->type == Figure::Rook &&
-                          !Rook->moved() &&
-                          (grd=Rook->grid->Offset(-1, 0))->empty() && !grd->is_attacked(!is_white) &&
-                          (grd=Rook->grid->Offset(-2, 0))->empty() && !grd->is_attacked(!is_white)
-                          ) moves.push_back(grid->Offset(2, 0));
+                     )
+                {
+                    moves.push_back(grid->Offset(-2, 0));
+                }
+                if ( !board->grids[7][y]->empty() &&
+                     (Rook = board->grids[7][y]->figure)->type == Figure::Rook &&
+                     !Rook->moved() &&
+                     (grd=Rook->grid->Offset(-1, 0))->empty() && !grd->is_attacked(!is_white) &&
+                     (grd=Rook->grid->Offset(-2, 0))->empty() && !grd->is_attacked(!is_white)
+                     )
+                {
+                    moves.push_back(grid->Offset(2, 0));
+                }
             }
 
         }
@@ -211,8 +221,12 @@ vector<Grid *> Figure::getGrids(bool getAttacked)
             int offsets[8][2] = { {1,2}, {2,1}, {-1,2},  {-2, 1},{-1, -2}, {1, -2},{-2, -1}, {2, -1}};
             for(int i=0; i<8; i++) {
                 Grid* g = grid->Offset( offsets[i][0], offsets[i][1]);
-                if(g && (getAttacked || ((g->empty() || g->figure->is_white != is_white) && move_valid(g))) )
+                if(g && (getAttacked ||
+                         ((g->empty() || g->figure->is_white != is_white) &&
+                          move_valid(g))) )
+                {
                     moves.push_back(g);
+                }
            }
         }
     }
@@ -221,8 +235,6 @@ vector<Grid *> Figure::getGrids(bool getAttacked)
 
         if ( fb[type].diagonal )
         {
-
-
             // right & up
             for(int x = grid->x+1, y = grid->y+1; x<8 && y < 8; x++, y++)
             {
@@ -435,7 +447,6 @@ void Figure::moveEnd()
 
 void Figure::mousePressEvent(QGraphicsSceneMouseEvent *pe)
 {
-    if ( pe->button() != Qt::LeftButton ) return;
-    if ( board->move == is_white ) Select();
+    if ( pe->button() == Qt::LeftButton && board->move == is_white ) Select();
     QGraphicsItem::mousePressEvent(pe);
 }

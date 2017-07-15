@@ -22,7 +22,8 @@ HEADERS += \
     gui/graphicsview.h \
     gui/mainwindow.h \
     gui/sidebar.h \
-    game/freefigures.h
+    game/freefigures.h \
+    gui/messagebox.h
 
 SOURCES += \
     game/board.cpp \
@@ -32,5 +33,6 @@ SOURCES += \
     gui/mainwindow.cpp \
     main.cpp \
     gui/sidebar.cpp \
-    game/freefigures.cpp
+    game/freefigures.cpp \
+    gui/messagebox.cpp
 

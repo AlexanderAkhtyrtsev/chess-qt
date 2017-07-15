@@ -21,9 +21,9 @@ public:
     Board *board;
     vector<FigureMove *> *moves;
     Grid *grid, *next_move;
-    void placeTo(Grid*);
-    void move(Grid*);
-    bool move_valid(Grid*);
+    void placeTo(Grid *);
+    void move(Grid *);
+    bool move_valid(Grid *);
     void Select();
     void Remove();
     vector<Grid *> getGrids(bool attacked = false);

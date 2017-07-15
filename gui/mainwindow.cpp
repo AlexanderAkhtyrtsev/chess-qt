@@ -1,16 +1,20 @@
 #include "mainwindow.h"
 
+
 MainWindow::MainWindow(QWidget *parent)
     : QWidget(parent)
 {
     view = new GraphicsView(this);
     board = new Board(view);
-
-    view->board = board;
+    board->window = this;
     view->setScene(board);
-    sidebar = new Sidebar(this);
-    sidebar->hide();
-    resize(320,480);
+    view->board = board;
+    sidebar = new Sidebar(board, this);
+    box = new Messagebox("Check Mate", this);
+    sidebar->resize( MIN_WINDOW_SIZE );
+    sidebar->move(-MIN_WINDOW_SIZE.width(), 0);
+    resize( MIN_WINDOW_SIZE );
+
 }
 
 
@@ -20,15 +24,13 @@ MainWindow::~MainWindow()
     delete view;
 }
 
+
+
 void MainWindow::resizeEvent(QResizeEvent *)
 {
-    int w = width();
-    int h = height();
-    view->resize(w, h);
-    int sw;
-    if ( w <= 320 ) sw = w;
-    else sw = w / 1.5;
-    sidebar->resize(sw, h);
+    view->resize(size());
+    sidebar->resize( qMin( MIN_WINDOW_SIZE.width(), width() ), height() );
+    box->resize(size());
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *pe)
@@ -43,5 +45,14 @@ void MainWindow::keyPressEvent(QKeyEvent *pe)
         sidebar->Toggle();
         break;
     }
+    box->hide();
     pe->accept();
+}
+
+void MainWindow::mouseReleaseEvent(QMouseEvent *pe)
+{
+    box->hide();
+    if (pe->button() == Qt::RightButton) {
+        sidebar->Toggle();
+    }
 }

@@ -35,10 +35,13 @@ void FreeFigures::update()
     for(int i = 0; i < sz; i++)
     {
         figure = figures->at(i);
-        int x = (i % 8) * board->grid_size;
+        int x = (i % 8);
         int t = i > 7;
         bool r = board->reverse();
-        int y = board->grid_size * ((figure->is_white ? (r ? 10 : 1 ) : (r ? 1 : 10) ) + (figure->is_white ? -t : t));
-        figure->setPos( x, y );
+        int top = 1 - t,
+         bottom = 10 + t;
+        int y = r ? (figure->is_white ? bottom : top) : (figure->is_white ? top : bottom);
+
+        figure->setPos( x * board->grid_size, y * board->grid_size );
     }
 }

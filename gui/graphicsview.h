@@ -8,5 +8,9 @@ public:
     Board *board;
 protected:
     void resizeEvent(QResizeEvent *);
+
+    // QWidget interface
+protected:
+    void mouseReleaseEvent(QMouseEvent *);
 };
 
