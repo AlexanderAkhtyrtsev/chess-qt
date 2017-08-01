@@ -14,7 +14,22 @@ FreeFigures::~FreeFigures()
 
 Figure *FreeFigures::addFigure(Figure *figure)
 {
-    figures->push_back(figure);
+    int sz = figures->size();
+    if (!sz) {
+        figures->push_back(figure);
+    } else {
+        bool f = false;
+        for(int i=0; i<sz; i++) {
+            if(figures->at(i)->type == figure->type) {
+                figures->insert(figures->begin()+1+i, figure);
+                f = true;
+                break;
+            }
+        }
+        if (!f) {
+            figures->push_back(figure);
+        }
+    }
     update();
     return figure;
 }
@@ -32,16 +47,15 @@ void FreeFigures::update()
 {
     int sz = figures->size();
     Figure *figure;
+
+    int empty = 0;
     for(int i = 0; i < sz; i++)
     {
         figure = figures->at(i);
-        int x = (i % 8);
-        int t = i > 7;
-        bool r = board->reverse();
-        int top = 1 - t,
-         bottom = 10 + t;
-        int y = r ? (figure->is_white ? bottom : top) : (figure->is_white ? top : bottom);
-
-        figure->setPos( x * board->grid_size, y * board->grid_size );
+        int top = 1,
+         bottom = 10;
+        int y = board->reverse() ? (figure->is_white ? bottom : top) : (figure->is_white ? top : bottom);
+        if ( i > 0 && figure->type != figures->at(i-1)->type ) empty+=2;
+        figure->setPos( (empty + i) * board->grid_size / 3.5, y * board->grid_size );
     }
 }

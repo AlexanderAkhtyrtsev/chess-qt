@@ -28,8 +28,12 @@ void Figure::placeTo(Grid *gridp)
 
 void Figure::move(Grid *to)
 {
-   if( !to->empty() && to->figure->is_white == is_white ) return;
-    board->reverse(board->move);
+    if( !to->empty() && to->figure->is_white == is_white ) return;
+
+    if ( board->options->flipBoard ) {
+        board->reverse(board->move);
+    }
+
     board->ReplaceElements();
 
     anim = new QPropertyAnimation(this, "pos");
@@ -105,7 +109,7 @@ vector<Grid *> Figure::getGrids(bool getAttacked)
 
     behavior fb[7] = // Figure behavior
     {
-        {0,0,0},
+        {0,0,0}, // how do u think ?)))
         {1,0,0}, // King
         {0,1,1}, // Queen
         {0,1,0}, // Bishop
@@ -123,7 +127,7 @@ vector<Grid *> Figure::getGrids(bool getAttacked)
         {
 
             Grid* g;
-                int up = is_white ? 1 : -1;
+            int up = is_white ? 1 : -1;
             if ( !getAttacked )
             {
 
@@ -183,7 +187,7 @@ vector<Grid *> Figure::getGrids(bool getAttacked)
                   moves.push_back(p_grid);
                 }
 
-                else if ( (!p_grid->empty() && p_grid->figure->is_white != is_white && !p_grid->figure->isProtected() ) )
+                else if ( (!p_grid->empty() && p_grid->figure->is_white != is_white && !p_grid->figure->isProtected() && move_valid(p_grid)) )
                     moves.push_back(p_grid);
 
             }

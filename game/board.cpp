@@ -32,6 +32,7 @@ Board::Board(QWidget* parent) :
     figures_b           = new vector<Figure     *>;
     moves               = new vector<FigureMove *>;
 
+    options = new Options;
 
     free_figures[0] = new FreeFigures(this);
     free_figures[1] = new FreeFigures(this); // white
@@ -49,8 +50,10 @@ Board::Board(QWidget* parent) :
     King[1] = figures->at(4);
     King[0] = figures->at(28);
 
-     for(unsigned i=0; i<figures->size(); i++)
+     for(unsigned i=0; i<figures->size(); i++){
          addItem(figures->at(i));
+         //if( figures->at(i)->type != Figure::King )  figures->at(i)->Remove();
+     }
 
 }
 
@@ -134,6 +137,7 @@ void Board::undoMove()
 
     if (last->extra)
     {
+        // Castling
         if (last->figure->type == Figure::King)
         {
             if ( last->figure->grid->x == 2)
@@ -158,11 +162,13 @@ void Board::undoMove()
     if ( last->removed )
     {
         int offsetY = 0;
-        if (last->extra && last->figure->type == Figure::Pawn)
+
+        if (last->extra && last->figure->type == Figure::Pawn && last->to->y != ( last->figure->is_white ? 7 : 0 )) {
             offsetY = last->figure->is_white ? -1 : 1;
+        }
+
         last->removed->in_game = true;
         last->removed->placeTo(last->to->Offset(0, offsetY));
-        //last->removed->show();
         free_figures[last->removed->is_white]->removeFigure(last->removed);
     }
    last->figure->moves->erase(last->figure->moves->end()-1);

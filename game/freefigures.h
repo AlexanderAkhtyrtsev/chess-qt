@@ -1,5 +1,7 @@
 #pragma once
 #include "figure.h"
+#include <map>
+using std::map;
 
 class FreeFigures
 {

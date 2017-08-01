@@ -12,6 +12,8 @@ class Grid;
 class FigureMove;
 class FreeFigures;
 class MainWindow;
+class Options;
+
 
 class Board : public QGraphicsScene
 {
@@ -41,6 +43,9 @@ public:
     Figure *selected, *King[2];
     FreeFigures *free_figures[2];
     MainWindow *window;
+
+    Options *options;
+
     // QGraphicsScene interface
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);

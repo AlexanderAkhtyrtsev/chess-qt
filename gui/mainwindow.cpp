@@ -4,6 +4,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QWidget(parent)
 {
+    resize( MIN_WINDOW_SIZE );
     view = new GraphicsView(this);
     board = new Board(view);
     board->window = this;
@@ -12,9 +13,6 @@ MainWindow::MainWindow(QWidget *parent)
     sidebar = new Sidebar(board, this);
     box = new Messagebox("Check Mate", this);
     sidebar->resize( MIN_WINDOW_SIZE );
-    sidebar->move(-MIN_WINDOW_SIZE.width(), 0);
-    resize( MIN_WINDOW_SIZE );
-
 }
 
 
@@ -26,33 +24,55 @@ MainWindow::~MainWindow()
 
 
 
-void MainWindow::resizeEvent(QResizeEvent *)
+
+
+void MainWindow::resizeEvent(QResizeEvent *pe)
 {
     view->resize(size());
-    sidebar->resize( qMin( MIN_WINDOW_SIZE.width(), width() ), height() );
+    QSize sidebarSize( qMin( MIN_WINDOW_SIZE.width(), width() ), height() );
+    sidebar->resize(sidebarSize);
+    sidebar->optionsWnd->resize(sidebarSize);
+    sidebar->helpWnd->resize(sidebarSize);
     box->resize(size());
+    pe->accept();
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *pe)
 {
+
+#ifdef Q_OS_ANDROID
+    static int backKeyPressed = 0;
+#endif
+
     switch (pe->key())
     {
     case Qt::Key_Backspace:
     case Qt::Key_Back:
         board->undoMove();
+#ifdef Q_OS_ANDROID
+        if ( !board->moves->size() ){
+            backKeyPressed ++;
+            if (backKeyPressed > 2) exit(0);
+        } else {
+            backKeyPressed = 0;
+        }
+#endif
         break;
     case Qt::Key_Escape:
-        sidebar->Toggle();
+        sidebar->show();
         break;
     }
-    box->hide();
     pe->accept();
 }
 
 void MainWindow::mouseReleaseEvent(QMouseEvent *pe)
 {
-    box->hide();
     if (pe->button() == Qt::RightButton) {
-        sidebar->Toggle();
+        sidebar->show();
     }
+}
+
+Options::Options()
+{
+    flipBoard = false;
 }

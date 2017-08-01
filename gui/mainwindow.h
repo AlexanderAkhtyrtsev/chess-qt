@@ -3,12 +3,14 @@
 #include "game/board.h"
 #include "graphicsview.h"
 #include "sidebar.h"
-#include "gui/messagebox.h"
+#include "fader.h"
+#include "messagebox.h"
 
 class GraphicsView;
 class Sidebar;
+class Messagebox;
 
-const QSize MIN_WINDOW_SIZE = QSize(320, 480);
+const QSize MIN_WINDOW_SIZE = QSize(384, 576);
 
 class MainWindow : public QWidget
 {
@@ -18,15 +20,19 @@ public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
     GraphicsView *view;
-    Board* board;
+    Board *board;
     Sidebar *sidebar;
     Messagebox *box;
 protected:
     void resizeEvent(QResizeEvent *);
     void keyPressEvent(QKeyEvent *);
-
-    // QWidget interface
-protected:
     void mouseReleaseEvent(QMouseEvent *);
 };
 
+
+class Options {
+public:
+    Options();
+    bool flipBoard;
+
+};
