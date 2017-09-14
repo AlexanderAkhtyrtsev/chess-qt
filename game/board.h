@@ -19,9 +19,10 @@ class Board : public QGraphicsScene
 {
     bool _reverse;
 public:
-    Board(QWidget* = 0);
+    Board(QWidget* = 0, unsigned int _spacing = 1);
     ~Board();
     static const int fig_pos[8][8];
+    unsigned int spacing;
     void newGame();
     void PaintGrids(bool = 0);
     void ReplaceElements();

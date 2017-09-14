@@ -157,6 +157,7 @@ vector<Grid *> Figure::getGrids(bool getAttacked)
                 g->empty() &&
                 move_valid(g)) moves.push_back(g);
 
+
             if ( (g=grid->Offset(-1, 0)) &&
                 !g->empty() &&
                 g->figure->type == Pawn &&

@@ -14,7 +14,7 @@ const int Board::fig_pos[8][8] = {
     {-5,-4,-3,-2,-1,-3,-4,-5 }
 };
 
-Board::Board(QWidget* parent) :
+Board::Board(QWidget* parent, unsigned int _spacing) :
     QGraphicsScene(parent)
 {
     grid_size = parent->width() / 8;
@@ -22,7 +22,7 @@ Board::Board(QWidget* parent) :
     chess_tiles = new QPixmap(":/img/chess.png");
 
     PaintGrids();
-
+    spacing = _spacing;
     selected            = 0;
     move                = true; // true - white
     _reverse            = false;
@@ -52,7 +52,7 @@ Board::Board(QWidget* parent) :
 
      for(unsigned i=0; i<figures->size(); i++){
          addItem(figures->at(i));
-         //if( figures->at(i)->type != Figure::King )  figures->at(i)->Remove();
+         if( figures->at(i)->type != Figure::King )  figures->at(i)->Remove();
      }
 
 }
@@ -124,15 +124,15 @@ void Board::check_game()
     // TODO : check if draw
 
     if (game_over) {
-        window->box->setText(messagebox_text);
-        window->box->show();
+//        window->box->setText(messagebox_text);
+//        window->box->show();
     }
 }
 
 void Board::undoMove()
 {
     if (!moves->size()) return;
-    FigureMove* last = moves->at(moves->size() - 1);
+    FigureMove *last = moves->at(moves->size() - 1);
 
 
     if (last->extra)
@@ -166,7 +166,7 @@ void Board::undoMove()
         if (last->extra && last->figure->type == Figure::Pawn && last->to->y != ( last->figure->is_white ? 7 : 0 )) {
             offsetY = last->figure->is_white ? -1 : 1;
         }
-
+        // Adding figure to game
         last->removed->in_game = true;
         last->removed->placeTo(last->to->Offset(0, offsetY));
         free_figures[last->removed->is_white]->removeFigure(last->removed);
@@ -207,14 +207,17 @@ bool Board::reverse(bool __reverse)
 void Board::PaintGrids(bool rm)
 {
 
-    if( rm )
-        for(int i=0; i<8; i++)for(int j=0; j<8; j++)
-            this->removeItem(grids[i][j]);
+    if( rm ) {
+        for(int i=0; i<8; i++) {
+            for(int j=0; j<8; j++) {
+                this->removeItem(grids[i][j]);
+            }
+        }
+    }
 
-    bool w = !1;
+    bool w = 0;
     for(int i=0; i<8; i++)
     {
-
         for(int j=0; j<8; j++)
         {
             grids[i][j] = new Grid(w, i, j, this);
@@ -229,7 +232,7 @@ void Board::ReplaceElements()
 {
     for(unsigned i=0; i<8; i++)
         for(unsigned j=0; j<8; j++)
-            grids[i][j]->setPos(grid_size * i, grid_size * (2 + (_reverse ? j : 7-j)));
+            grids[i][j]->setPos(grid_size * i, grid_size * (spacing + (_reverse ? j : 7-j)) );
 
     for(unsigned i=0; i<figures->size(); i++)
     {

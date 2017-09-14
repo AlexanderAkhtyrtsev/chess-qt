@@ -21,14 +21,8 @@ HEADERS += \
     game/grid.h \
     gui/graphicsview.h \
     gui/mainwindow.h \
-    gui/sidebar.h \
     game/freefigures.h \
-    gui/messagebox.h \
-    gui/dialbox.h \
-    gui/fader.h \
     gui/window.h \
-    gui/optionswindow.h \
-    gui/helpwnd.h \
     game/gametimer.h
 
 SOURCES += \
@@ -38,14 +32,8 @@ SOURCES += \
     gui/graphicsview.cpp \
     gui/mainwindow.cpp \
     main.cpp \
-    gui/sidebar.cpp \
     game/freefigures.cpp \
-    gui/messagebox.cpp \
-    gui/dialbox.cpp \
-    gui/fader.cpp \
     gui/window.cpp \
-    gui/optionswindow.cpp \
-    gui/helpwnd.cpp \
     game/gametimer.cpp
 
 DISTFILES += \

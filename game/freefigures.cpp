@@ -52,8 +52,8 @@ void FreeFigures::update()
     for(int i = 0; i < sz; i++)
     {
         figure = figures->at(i);
-        int top = 1,
-         bottom = 10;
+        int top = board->spacing - 1, // 1 is default
+         bottom = board->spacing * 2 + 7;
         int y = board->reverse() ? (figure->is_white ? bottom : top) : (figure->is_white ? top : bottom);
         if ( i > 0 && figure->type != figures->at(i-1)->type ) empty+=2;
         figure->setPos( (empty + i) * board->grid_size / 3.5, y * board->grid_size );
