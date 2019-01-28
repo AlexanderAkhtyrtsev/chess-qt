@@ -4,7 +4,7 @@ Grid::Grid(bool w, int _x, int _y, Board *_board) : QGraphicsItem()
 {
     is_white = w;
     light = false;
-    figure = 0;
+    piece = 0;
     board = _board;
     x = _x; y = _y;
 
@@ -23,10 +23,10 @@ Grid::~Grid()
 
 }
 
-void Grid::Highlight(bool h)
+void Grid::Highlight(int lightType)
 {
-    if (light == h) return; // dont change ath cause no needed
-    light = h;
+    if (light == lightType) return; // dont change ath cause no needed
+    light = lightType;
     update(0, 0, board->grid_size,board->grid_size);
 }
 
@@ -45,21 +45,27 @@ Grid *Grid::Offset(int dx, int dy)
     return board->grids[xn][yn];
 }
 
+QString Grid::name()
+{
+    return QString((char)(0x61+x)) + QString::number(y+1);
+}
+
 bool Grid::is_attacked(bool w)
 {
 
-    Figure* p_figure;
+    Piece* p_piece;
     vector<Grid *> grids;
 
-    vector<Figure *> *figures = w ? board->figures_w : board->figures_b;
-    unsigned figures_count = figures->size();
-    for(unsigned i = 0; i < figures_count; i++)
+    vector<Piece *> *pieces =
+            w ? board->pieces_w
+              : board->pieces_b;
+    unsigned pieces_count = pieces->size();
+    for(unsigned i = 0; i < pieces_count; i++)
     {
-         p_figure = figures->at(i);
-         if( !p_figure->in_game ) continue;
-         grids = p_figure->getGrids(true);
+         p_piece = pieces->at(i);
+         if( !p_piece->inGame ) continue;
+         grids = p_piece->getGrids(true);
          if ( std::find(grids.begin(), grids.end(), this) != grids.end() ) return true;
-
     }
     return false;
 }
@@ -68,12 +74,14 @@ bool Grid::is_attacked(bool w)
 
 bool Grid::empty() const
 {
-    return figure == 0;
+    return piece == 0;
 }
 
 
 void Grid::paint(QPainter *painter, const QStyleOptionGraphicsItem*, QWidget*)
 {
+
+    /*
     QBrush brush(QColor(is_white ? QColor(200, 200, 200) : QColor(120, 120, 120)));
     painter->save();
         painter->setBrush(brush);
@@ -81,7 +89,7 @@ void Grid::paint(QPainter *painter, const QStyleOptionGraphicsItem*, QWidget*)
         painter->drawRect(QRect(0, 0, board->grid_size, board->grid_size));
         painter->setRenderHint(QPainter::Antialiasing, true);
     painter->restore();
-
+*/
 
     if (light)
     {
@@ -92,9 +100,17 @@ void Grid::paint(QPainter *painter, const QStyleOptionGraphicsItem*, QWidget*)
 
         QRect rect(p, p, board->grid_size-p*2, board->grid_size-p*2);
 
-        QColor color = empty() ? Qt::green :
-                        figure->is_white != board->move ? Qt::red :
-                      board->selected && figure == board->selected ? Qt::blue : Qt::red ;
+        QColor color;
+        switch (light) {
+        case 1:
+            color = this->empty() ? Qt::green :
+                    piece->isWhite != board->move ? Qt::red :
+                    board->selected && piece == board->selected ? Qt::blue : Qt::red ;
+            break;
+        case 2:
+            color = Qt::gray;
+            break;
+        };
         QBrush brush2(color);
                painter->setPen(QPen(brush2, p, Qt::SolidLine, Qt::RoundCap));
                painter->drawRect(rect);
@@ -106,10 +122,7 @@ void Grid::paint(QPainter *painter, const QStyleOptionGraphicsItem*, QWidget*)
 
 void Grid::mousePressEvent(QGraphicsSceneMouseEvent *pe)
 {
-
-    if( board->selected && light && figure != board->selected ) board->selected->move(this);
-    else if( empty() )  board->ResetHighligtedGrids()->selected = 0;
+    if( board->selected && light && piece != board->selected ) board->selected->makeMove(this);
+    else if( this->empty() )  board->ResetHighligtedGrids()->selected = 0;
     QGraphicsItem::mousePressEvent(pe);
 }
-
-

@@ -4,60 +4,71 @@
 #include <vector>
 #include <algorithm>
 
+const int MIN_SCORE = -999999;
+const int MAX_SCORE =  999999;
 
 
 using std::vector;
-class Figure;
+class Piece;
 class Grid;
-class FigureMove;
-class FreeFigures;
+class PieceMove;
+class FreePieces;
 class MainWindow;
 class Options;
 
 
 class Board : public QGraphicsScene
 {
-    bool _reverse;
+    Q_OBJECT
+    bool m_reverse;
+    QGraphicsPixmapItem *boardTex;
 public:
-    Board(QWidget* = 0, unsigned int _spacing = 1);
+    Board(QWidget* = 0);
     ~Board();
-    static const int fig_pos[8][8];
+    static const int initPiecePos[8][8];
     unsigned int spacing;
-    void newGame();
-    void PaintGrids(bool = 0);
+
+    void PaintGrids();
     void ReplaceElements();
     bool is_check(bool w);
-    void check_game();
-    void undoMove();
+    int check_game(bool show = true);
+    void undoMove(bool show = true);
+    void computerMove();
+    int getCurrentScore();
+    int minimax(int depth, int alpha = MIN_SCORE, int beta = MAX_SCORE);
+    PieceMove getBestMove(int depth = 10);
+    vector<PieceMove> getAllMoves();
     Board *ResetHighligtedGrids();
 
     int grid_size;
     bool move;
     bool reverse() const; // getter
-    bool reverse(bool);     // setter
-    bool figures_selectable;
+    bool reverse(bool reverse);     // setter
+    bool pieces_selectable;
     Grid* grids[8][8];
     QPixmap* chess_tiles;
-    vector<FigureMove *> *moves;
-    vector<Figure *> *figures;
-    vector<Figure *> *figures_w, *figures_b;
-    Figure *selected, *King[2];
-    FreeFigures *free_figures[2];
+    vector<PieceMove *> *moves;
+    vector<Piece *> *pieces;
+    vector<Piece *> *pieces_w, *pieces_b;
+    Piece *selected, *King[2];
+    FreePieces *free_pieces[2];
     MainWindow *window;
 
     Options *options;
-
-    // QGraphicsScene interface
+public slots:
+    void newGame();
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
 };
 
-class FigureMove
+
+class PieceMove
 {
 public:
-    FigureMove(Figure *_figure, Grid *_from, Grid *_to, Figure *rem , bool _extra = false);
-    Figure *figure;
+    PieceMove(Piece *_piece = 0, Grid *_from = 0, Grid *_to = 0, Piece *rem = 0, bool _extra = false);
+    Piece *piece;
     Grid *from, *to;
-    Figure *removed;
+    Piece *removed;
+    bool isNull() const;
     bool extra;
 };

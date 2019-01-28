@@ -2,23 +2,24 @@
 
 #include "gui/mainwindow.h"
 #include "board.h"
-#include "figure.h"
+#include "piece.h"
 
 class Grid : public QGraphicsItem
 {
 
 public:
-    bool is_white, light;
+    bool is_white;
+    int light;
     int x, y;
     Grid(bool w = false, int _x = 0, int _y = 0, Board* = 0);
     ~Grid();
-    void Highlight(bool = true);
+    void Highlight(int = 1);
     // QGraphicsItem interface
     QRectF boundingRect() const;
-    Figure* figure;
+    Piece* piece;
     Board* board;
     Grid *Offset(int x, int y);
-
+    QString name();
     bool is_attacked(bool);
 
     bool empty() const;

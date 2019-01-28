@@ -17,30 +17,32 @@ RESOURCES += \
 
 HEADERS += \
     game/board.h \
-    game/figure.h \
     game/grid.h \
     gui/graphicsview.h \
     gui/mainwindow.h \
-    game/freefigures.h \
     gui/window.h \
-    game/gametimer.h
+    game/gametimer.h \
+    game/piece.h \
+    game/freepieces.h
 
 SOURCES += \
     game/board.cpp \
     game/grid.cpp \
-    game/figure.cpp \
     gui/graphicsview.cpp \
     gui/mainwindow.cpp \
     main.cpp \
-    game/freefigures.cpp \
     gui/window.cpp \
-    game/gametimer.cpp
+    game/gametimer.cpp \
+    game/piece.cpp \
+    game/freepieces.cpp
 
 DISTFILES += \
     android/AndroidManifest.xml
 
 win32 {
     RC_ICONS = img/icon.ico
+#	QMAKE_LFLAGS_RELEASE += -static -static-libgcc
 }
+CONFIG(debug, release|debug):DEFINES += _DEBUG
 
 ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
