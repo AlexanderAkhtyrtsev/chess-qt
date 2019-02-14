@@ -4,6 +4,7 @@
 #include <vector>
 #include <algorithm>
 
+const int BOARD_SIZE = 10;
 const int MIN_SCORE = -999999;
 const int MAX_SCORE =  999999;
 
@@ -22,6 +23,7 @@ class Board : public QGraphicsScene
     Q_OBJECT
     bool m_reverse;
     QGraphicsPixmapItem *boardTex;
+    unsigned m_size;
 public:
     Board(QWidget* = 0);
     ~Board();
@@ -36,11 +38,13 @@ public:
     void computerMove();
     int getCurrentScore();
     int minimax(int depth, int alpha = MIN_SCORE, int beta = MAX_SCORE);
-    PieceMove getBestMove(int depth = 10);
+    PieceMove getBestMove(int depth = 1);
+    PieceMove getFirstMove();
     vector<PieceMove> getAllMoves();
     Board *ResetHighligtedGrids();
 
     int grid_size;
+
     bool move;
     bool reverse() const; // getter
     bool reverse(bool reverse);     // setter
@@ -57,6 +61,7 @@ public:
     Options *options;
 public slots:
     void newGame();
+    void doAutoMove();
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
 };

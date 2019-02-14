@@ -43,6 +43,6 @@ win32 {
     RC_ICONS = img/icon.ico
 #	QMAKE_LFLAGS_RELEASE += -static -static-libgcc
 }
-CONFIG(debug, release|debug):DEFINES += _DEBUG
+#CONFIG(debug, release|debug):DEFINES += _DEBUG
 
 ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android

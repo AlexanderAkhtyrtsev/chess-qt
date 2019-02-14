@@ -17,9 +17,9 @@ const int Board::initPiecePos[8][8] = {
     {-5,-4,-3,-2,-1,-3,-4,-5 }
 };
 
-//*/
-/*
-const int Board::fig_pos[8][8] = {
+/*/
+
+const int Board::initPiecePos[8][8] = {
     { 5, 4, 3, 0, 1, 0, 4, 5 },
     { 6, 6, 6, 6, 0, 6, 6, 6 },
     { 0, 0, 0, 0, 0, 2, 0, 0 },
@@ -35,18 +35,18 @@ const int Board::fig_pos[8][8] = {
 Board::Board(QWidget* parent) :
     QGraphicsScene(parent)
 {
-    grid_size = parent->width() / 10;
-    setSceneRect(0, 0, 10*grid_size, 10*grid_size);
+    grid_size = parent->width() / BOARD_SIZE;
+    setSceneRect(0, 0, BOARD_SIZE*grid_size, BOARD_SIZE*grid_size);
     chess_tiles = new QPixmap(":/img/chess.png");
     boardTex = new QGraphicsPixmapItem(QPixmap(":/img/board.png"));
 
     selected            = 0;
     move                = true; // true - white
-    m_reverse            = false;
-    pieces_selectable  = true;
-    pieces             = new vector<Piece     *>;
-    pieces_w           = new vector<Piece     *>;
-    pieces_b           = new vector<Piece     *>;
+    m_reverse           = false;
+    pieces_selectable   = true;
+    pieces              = new vector<Piece     *>;
+    pieces_w            = new vector<Piece     *>;
+    pieces_b            = new vector<Piece     *>;
     moves               = new vector<PieceMove *>;
     options = new Options;
 
@@ -115,6 +115,11 @@ void Board::newGame()
         }
     }
     ResetHighligtedGrids();
+}
+
+void Board::doAutoMove()
+{
+    this->computerMove();
 }
 
 
@@ -238,7 +243,7 @@ void Board::computerMove()
 int Board::getCurrentScore()
 {
     //int Points = {None, King, Queen, Bishop, Knight, Rook, Pawn};
-    int points[] = {0,    0,    50,    30,      35,      40,   10};
+    int points[] = {0,    0,    80,    30,      35,      40,   5};
     int total = 0;
 
     if (this->check_game(false) == 1) {
@@ -248,11 +253,13 @@ int Board::getCurrentScore()
     for( auto piece : *pieces ){
         if (piece->inGame) {
             total += piece->isWhite ? points[piece->type] : -points[piece->type];
-            /*if (piece->type > Piece::King && piece->type < Piece::Pawn) {
-                if (piece->moves->size()){
+          /*  too low
+           * if (piece->type > Piece::King && piece->type < Piece::Pawn) {
+
+                if (piece->getGrids(false).size()){
                     total += piece->isWhite ? 1 : -1;
                 }
-            }*/
+            }/*/
         }
     }
     return total ;//+ this->getAllMoves().size();
@@ -264,7 +271,7 @@ int Board::minimax(int depth, int alpha, int beta)
     iter++;
 
 
-    if (this->check_game(false) == 1 || depth == 0) {
+    if (depth == 0 || this->check_game(false) == 1) {
         return this->getCurrentScore();
     }
 
@@ -299,7 +306,8 @@ PieceMove Board::getBestMove(int depth)
 {
 
     PieceMove bestMove;
-    vector<PieceMove> moves = this->getAllMoves();
+    vector<PieceMove> eqMoves, moves = this->getAllMoves();
+
     if (depth > 0) {
 
         if (!moves.size()) {
@@ -307,7 +315,7 @@ PieceMove Board::getBestMove(int depth)
             return bestMove;
         }
 
-        int score = this->getCurrentScore(); // ??????
+        int score = this->move ? MIN_SCORE : MAX_SCORE;
 
 
         for(PieceMove pieceMove : moves) {
@@ -320,22 +328,40 @@ PieceMove Board::getBestMove(int depth)
                 if (m > score) {
                     bestMove = pieceMove;
                     score = m;
+                    eqMoves.clear();
+                    eqMoves.push_back(pieceMove);
+                } else if (m == score) {
+                    eqMoves.push_back(pieceMove);
                 }
             } else {
                 if (m < score) {
                     bestMove = pieceMove;
                     score = m;
+                    eqMoves.clear();
+                    eqMoves.push_back(pieceMove);
+                } else if (m == score) {
+                    eqMoves.push_back(pieceMove);
                 }
             }
         }
     }
 
-    if (bestMove.isNull() && moves.size()){
+    if (eqMoves.size()){
+            bestMove = eqMoves.size() > 1 ? eqMoves[(qrand() % eqMoves.size())] : eqMoves[0];
+            qDebug() << "(one of" << eqMoves.size() << "best moves)";
+    }
+
+    else if (bestMove.isNull() && moves.size()){
             bestMove = moves[(qrand() % moves.size())];
             qDebug() << "(random move)";
     }
 
     return bestMove;
+}
+
+PieceMove Board::getFirstMove()
+{
+
 }
 
 vector<PieceMove> Board::getAllMoves()
@@ -370,6 +396,7 @@ Board *Board::ResetHighligtedGrids()
     }
     return this;
 }
+
 
 bool Board::reverse() const
 {
@@ -413,7 +440,7 @@ void Board::ReplaceElements()
     }
     free_pieces[0]->update();
     free_pieces[1]->update();
-    float multiplier = (float)(grid_size*10)/(float)(boardTex->pixmap().width());
+    float multiplier = (float)(grid_size*BOARD_SIZE)/(float)(boardTex->pixmap().width());
     boardTex->setScale(multiplier);
     if(this->reverse()) {
         QTransform t = QTransform().rotate(180, Qt::YAxis).translate(-boardTex->pixmap().width()*multiplier, 0);

@@ -17,6 +17,7 @@ void MainWindow::test()
 MainWindow::MainWindow(QWidget *parent)
     : QWidget(parent)
 {
+
     resize( MIN_WINDOW_SIZE );
     list_sel1 = new QComboBox;
 
@@ -26,22 +27,26 @@ MainWindow::MainWindow(QWidget *parent)
     list_sel1->addItem("Search depth: 3", 3);
     list_sel1->addItem("Search depth: 4", 4);
     list_sel1->addItem("Search depth: 5", 5);
+    list_sel1->setCurrentIndex(3);
     btn_newGame = new QPushButton("New game");
+    btn_automove = new QPushButton("Do automove");
     vbl = new QVBoxLayout();
     hbl = new QHBoxLayout();
 
     hbl->addWidget(list_sel1);
     hbl->addWidget(btn_newGame);
+    hbl->addWidget(btn_automove);
     vbl->setMargin(0);
     view = new GraphicsView();
     board = new Board(view);
     board->window = this;
-    view->setScene(board);
     view->board = board;
+    view->setScene(board);
     vbl->addLayout(hbl);
     vbl->addWidget(view);
     this->setLayout(vbl);
     QObject::connect(btn_newGame, SIGNAL(clicked()), this->board, SLOT(newGame()));
+    QObject::connect(btn_automove, SIGNAL(clicked()), this->board, SLOT(doAutoMove()));
 }
 
 
@@ -76,9 +81,6 @@ void MainWindow::keyPressEvent(QKeyEvent *pe)
     case Qt::Key_Space:
         board->reverse( !board->reverse() );
     break;
-    case Qt::Key_A:
-        this->board->computerMove();
-        break;
     case Qt::Key_T: test();
         break;
     case Qt::Key_N: board->newGame();

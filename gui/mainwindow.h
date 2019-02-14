@@ -12,7 +12,7 @@ class MainWindow : public QWidget
     Q_OBJECT
     QVBoxLayout *vbl;
     QHBoxLayout *hbl;
-    QPushButton *btn_newGame;
+    QPushButton *btn_newGame, *btn_automove;
     QComboBox *list_sel1;
     void test();
 public:
