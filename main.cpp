@@ -5,7 +5,7 @@
 
 int main(int argc, char *argv[])
 {
-    qsrand(time(0));
+    qsrand(static_cast<quint32>(time(nullptr)));
     QApplication a(argc, argv);
     MainWindow w;
     w.show();

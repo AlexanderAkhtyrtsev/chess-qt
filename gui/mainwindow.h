@@ -16,7 +16,7 @@ class MainWindow : public QWidget
     QComboBox *list_sel1;
     void test();
 public:
-    MainWindow(QWidget *parent = 0);
+    MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     GraphicsView *view;
     Board *board;
@@ -24,7 +24,6 @@ public:
 protected:
     void resizeEvent(QResizeEvent *);
     void keyPressEvent(QKeyEvent *);
-    void mouseReleaseEvent(QMouseEvent);
 };
 
 

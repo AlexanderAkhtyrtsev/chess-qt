@@ -1,64 +1,36 @@
 #include "grid.h"
 
-Grid::Grid(bool w, int _x, int _y, Board *_board) : QGraphicsItem()
+namespace L {
+Grid::Grid(int _x, int _y, L::Board *_board) : x(_x), y(_y), lboard(_board)
 {
-    is_white = w;
-    light = false;
-    piece = 0;
-    board = _board;
-    x = _x; y = _y;
-
-    if( x < 0 ) x = 0;
-    else if (x > 7) x = 7;
-
-    if( y < 0 ) y = 0;
-    else if (y > 7) y = 7;
-
-    setZValue(0);
-    setPos(x*board->grid_size, (board->reverse() ? y : 7-y)*board->grid_size);
+    lpiece = nullptr;
 }
 
-Grid::~Grid()
+Grid *Grid::offset(int dx, int dy)
 {
-
-}
-
-void Grid::Highlight(int lightType)
-{
-    if (light == lightType) return; // dont change ath cause no needed
-    light = lightType;
-    update(0, 0, board->grid_size,board->grid_size);
-}
-
-
-
-QRectF Grid::boundingRect() const
-{
-    return QRectF(0, 0, board->grid_size, board->grid_size);
-}
-
-Grid *Grid::Offset(int dx, int dy)
-{
-    int xn = x+dx,
-            yn = y+dy;
-    if ( xn < 0 || xn > 7 || yn < 0 || yn > 7) return 0;
-    return board->grids[xn][yn];
+    assert(this);
+    int xn = x+dx;
+    int yn = y+dy;
+    if ( xn < 0 || xn > 7 || yn < 0 || yn > 7) {
+        return nullptr;
+    }
+    return lboard->grids[xn][yn];
 }
 
 QString Grid::name()
 {
-    return QString((char)(0x61+x)) + QString::number(y+1);
+    return QString(char(0x61+x)) + QString::number(y+1);
 }
 
 bool Grid::is_attacked(bool w)
 {
 
-    Piece* p_piece;
-    vector<Grid *> grids;
+    L::Piece* p_piece;
+    vector<L::Grid *> grids;
 
-    vector<Piece *> *pieces =
-            w ? board->pieces_w
-              : board->pieces_b;
+    vector<L::Piece *> *pieces =
+            w ? lboard->pieces_w
+              : lboard->pieces_b;
     unsigned pieces_count = pieces->size();
     for(unsigned i = 0; i < pieces_count; i++)
     {
@@ -74,7 +46,57 @@ bool Grid::is_attacked(bool w)
 
 bool Grid::empty() const
 {
-    return piece == 0;
+    return lpiece == nullptr;
+}
+
+
+} // NAMESPACE L
+
+
+Grid::Grid(L::Grid *l_grid, Board *_board) : QGraphicsItem(), lgrid(l_grid), board(_board)
+{
+    light = false;
+    piece = nullptr;
+    setZValue(0);
+    setPos(lgrid->x*board->grid_size, (board->reverse() ? lgrid->y : 7-lgrid->y)*board->grid_size);
+}
+
+Grid::~Grid()
+{
+
+}
+
+void Grid::Highlight(int lightType)
+{
+    if (light == lightType) return; // dont change ath cause no needed
+    light = lightType;
+    update(0, 0, board->grid_size,board->grid_size);
+}
+
+Grid::operator L::Grid() const
+{
+    return *lgrid;
+}
+
+Grid *Grid::offset(int dx, int dy)
+{
+    int xn = lgrid->x+dx,
+            yn = lgrid->y+dy;
+    if ( xn < 0 || xn > 7 || yn < 0 || yn > 7) {
+        return nullptr;
+    }
+    return board->grids[xn][yn];
+}
+
+Grid *Grid::get(L::Grid *l_grid, Board *board)
+{
+    return board->grids [l_grid->x][l_grid->y];
+}
+
+
+QRectF Grid::boundingRect() const
+{
+    return QRectF(0, 0, board->grid_size, board->grid_size);
 }
 
 
@@ -96,16 +118,16 @@ void Grid::paint(QPainter *painter, const QStyleOptionGraphicsItem*, QWidget*)
         painter->save();
         painter->setRenderHint(QPainter::Antialiasing, true);
         painter->setOpacity(0.8);
-        int p =  board->grid_size * 0.09;
+         int p =  static_cast<int>(board->grid_size * 0.09);
 
         QRect rect(p, p, board->grid_size-p*2, board->grid_size-p*2);
 
         QColor color;
         switch (light) {
         case 1:
-            color = this->empty() ? Qt::green :
-                    piece->isWhite != board->move ? Qt::red :
-                    board->selected && piece == board->selected ? Qt::blue : Qt::red ;
+            color = this->lgrid->empty() ? Qt::green :
+                    lgrid->lpiece->isWhite != board->lboard->move ? Qt::red :
+                    board->selected && lgrid->lpiece == board->selected->lpiece ? Qt::blue : Qt::red ;
             break;
         case 2:
             color = Qt::gray;
@@ -116,13 +138,12 @@ void Grid::paint(QPainter *painter, const QStyleOptionGraphicsItem*, QWidget*)
                painter->drawRect(rect);
         painter->restore();
     }
-
 }
 
 
 void Grid::mousePressEvent(QGraphicsSceneMouseEvent *pe)
 {
-    if( board->selected && light && piece != board->selected ) board->selected->makeMove(this);
-    else if( this->empty() )  board->ResetHighligtedGrids()->selected = 0;
+    if( board->selected && light && lgrid->lpiece != board->selected->lpiece ) board->selected->makeMove(this);
+    else if( lgrid->empty() && board->selected)  board->ResetHighligtedGrids()->selected = nullptr;
     QGraphicsItem::mousePressEvent(pe);
 }

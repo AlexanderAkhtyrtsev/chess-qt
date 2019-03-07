@@ -3,8 +3,9 @@
 #include <QtWidgets>
 #include <vector>
 #include <algorithm>
+#include <cassert>
 
-const int BOARD_SIZE = 10;
+const unsigned int BOARD_SIZE = 10;
 const int MIN_SCORE = -999999;
 const int MAX_SCORE =  999999;
 
@@ -12,11 +13,56 @@ const int MAX_SCORE =  999999;
 using std::vector;
 class Piece;
 class Grid;
-class PieceMove;
 class FreePieces;
 class MainWindow;
 class Options;
+class AIThread;
 
+namespace L {
+
+class PieceMove;
+class Grid;
+class Piece;
+
+class Board {
+
+public:
+    Board();
+    static const int initPiecePos[8][8];
+    Grid* grids[8][8];
+    bool move;
+    vector<PieceMove *> *moves;
+    PieceMove *currentMove;
+    vector<Piece *> *pieces, *pieces_w, *pieces_b;
+    Piece *King[2];
+
+
+    vector<PieceMove> getAllMoves();
+    PieceMove getBestMove(int depth = 1);
+
+    bool is_check(bool w);
+    int getCurrentScore();
+    int minimax(int depth, int alpha = MIN_SCORE, int beta = MAX_SCORE);
+
+    int check_game();
+
+    void undoMove(); // ??
+};
+
+
+class PieceMove
+{
+public:
+    PieceMove(L::Piece *_piece = nullptr, L::Grid *_from = nullptr, L::Grid *_to = nullptr, L::Piece *rem = nullptr, bool _extra = false);
+    L::Piece *lpiece;
+    L::Grid *from, *to;
+    L::Piece *removed;
+    bool isNull() const;
+    bool extra;
+};
+
+
+}
 
 class Board : public QGraphicsScene
 {
@@ -25,55 +71,46 @@ class Board : public QGraphicsScene
     QGraphicsPixmapItem *boardTex;
     unsigned m_size;
 public:
-    Board(QWidget* = 0);
+    L::Board  *lboard;
+    AIThread *aiThread;
+    Board(QWidget* = nullptr);
     ~Board();
-    static const int initPiecePos[8][8];
     unsigned int spacing;
 
-    void PaintGrids();
     void ReplaceElements();
-    bool is_check(bool w);
-    int check_game(bool show = true);
-    void undoMove(bool show = true);
-    void computerMove();
-    int getCurrentScore();
-    int minimax(int depth, int alpha = MIN_SCORE, int beta = MAX_SCORE);
-    PieceMove getBestMove(int depth = 1);
-    PieceMove getFirstMove();
-    vector<PieceMove> getAllMoves();
+    void undoMove();
     Board *ResetHighligtedGrids();
+    bool reverse() const; // getter
+    bool reverse(bool reverse);     // setter
+
 
     int grid_size;
 
-    bool move;
-    bool reverse() const; // getter
-    bool reverse(bool reverse);     // setter
-    bool pieces_selectable;
+
+    bool piecesSelectable;
     Grid* grids[8][8];
     QPixmap* chess_tiles;
-    vector<PieceMove *> *moves;
     vector<Piece *> *pieces;
     vector<Piece *> *pieces_w, *pieces_b;
     Piece *selected, *King[2];
     FreePieces *free_pieces[2];
     MainWindow *window;
-
     Options *options;
+
+    void computerMove();
 public slots:
+    void computerMoveEnd();
     void newGame();
     void doAutoMove();
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
 };
 
-
-class PieceMove
+class AIThread : public QThread
 {
-public:
-    PieceMove(Piece *_piece = 0, Grid *_from = 0, Grid *_to = 0, Piece *rem = 0, bool _extra = false);
-    Piece *piece;
-    Grid *from, *to;
-    Piece *removed;
-    bool isNull() const;
-    bool extra;
+    Board *board;
+    public:
+    L::PieceMove bestMove;
+    AIThread(Board *board);
+    void run();
 };

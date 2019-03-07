@@ -4,25 +4,40 @@
 #include "board.h"
 #include "piece.h"
 
+
+
 class Grid : public QGraphicsItem
 {
-
-public:
-    bool is_white;
     int light;
-    int x, y;
-    Grid(bool w = false, int _x = 0, int _y = 0, Board* = 0);
+public:
+    Piece *piece;
+    L::Grid *lgrid;
+    Board *board;
+    Grid(L::Grid *lgrid, Board* = nullptr);
     ~Grid();
     void Highlight(int = 1);
-    // QGraphicsItem interface
+    operator L::Grid () const;
+    Grid *offset(int dx, int dy);
+    static Grid *get(L::Grid *, Board *board);
     QRectF boundingRect() const;
-    Piece* piece;
-    Board* board;
-    Grid *Offset(int x, int y);
-    QString name();
-    bool is_attacked(bool);
-
-    bool empty() const;
     void paint(QPainter *, const QStyleOptionGraphicsItem *, QWidget *);
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
 };
+
+
+namespace L {
+
+class Grid {
+public:
+    Grid(int _x = 0, int _y = 0, L::Board *l_board = nullptr);
+    L::Grid *offset(int x, int y);
+    bool is_attacked(bool w);
+    QString name();
+    bool empty() const;
+    int x, y;
+    L::Piece* lpiece;
+    L::Board* lboard;
+};
+
+}
+

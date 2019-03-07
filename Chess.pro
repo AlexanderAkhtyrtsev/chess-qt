@@ -21,7 +21,6 @@ HEADERS += \
     gui/graphicsview.h \
     gui/mainwindow.h \
     gui/window.h \
-    game/gametimer.h \
     game/piece.h \
     game/freepieces.h
 
@@ -32,7 +31,6 @@ SOURCES += \
     gui/mainwindow.cpp \
     main.cpp \
     gui/window.cpp \
-    game/gametimer.cpp \
     game/piece.cpp \
     game/freepieces.cpp
 
@@ -43,6 +41,7 @@ win32 {
     RC_ICONS = img/icon.ico
 #	QMAKE_LFLAGS_RELEASE += -static -static-libgcc
 }
-#CONFIG(debug, release|debug):DEFINES += _DEBUG
+
+CONFIG(debug, release|debug):DEFINES += _DEBUG
 
 ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android

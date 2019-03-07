@@ -9,7 +9,9 @@ void MainWindow::test()
     for(int i=0; i<20; i++) board->is_check(1);
     t2 = QDateTime::currentMSecsSinceEpoch();
  //*/
-    qDebug() << "score:" << board->getCurrentScore() << "points";
+    qDebug() << "score:" << board->lboard->getCurrentScore() << "points";
+    qDebug() << "check_w:" << board->lboard->is_check(true);
+    qDebug() << "check_b:" << board->lboard->is_check(false);
 
 
 }
@@ -87,11 +89,6 @@ void MainWindow::keyPressEvent(QKeyEvent *pe)
         break;
     }
     pe->accept();
-}
-
-void MainWindow::mouseReleaseEvent(QMouseEvent)
-{
-
 }
 
 Options::Options()

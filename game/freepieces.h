@@ -1,7 +1,5 @@
 #pragma once
-#include "Piece.h"
-#include <map>
-using std::map;
+#include "piece.h"
 
 class FreePieces
 {
@@ -12,5 +10,6 @@ public:
     ~FreePieces();
     Piece *addPiece(Piece *);
     Piece *removePiece(Piece *);
+    unsigned pieceCount() const;
     void update();
 };
