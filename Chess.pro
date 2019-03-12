@@ -22,7 +22,8 @@ HEADERS += \
     gui/mainwindow.h \
     gui/window.h \
     game/piece.h \
-    game/freepieces.h
+    game/freepieces.h \
+    game/gametimer.h
 
 SOURCES += \
     game/board.cpp \
@@ -32,7 +33,8 @@ SOURCES += \
     main.cpp \
     gui/window.cpp \
     game/piece.cpp \
-    game/freepieces.cpp
+    game/freepieces.cpp \
+    game/gametimer.cpp
 
 DISTFILES += \
     android/AndroidManifest.xml

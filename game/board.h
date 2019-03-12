@@ -2,15 +2,17 @@
 
 #include <QtWidgets>
 #include <vector>
+#include <stack>
 #include <algorithm>
 #include <cassert>
 
-const unsigned int BOARD_SIZE = 10;
 const int MIN_SCORE = -999999;
 const int MAX_SCORE =  999999;
 
 
 using std::vector;
+using std::stack;
+
 class Piece;
 class Grid;
 class FreePieces;
@@ -73,6 +75,7 @@ class Board : public QGraphicsScene
 public:
     L::Board  *lboard;
     AIThread *aiThread;
+    QSize size;
     Board(QWidget* = nullptr);
     ~Board();
     unsigned int spacing;
@@ -91,6 +94,7 @@ public:
     Grid* grids[8][8];
     QPixmap* chess_tiles;
     vector<Piece *> *pieces;
+    stack<quint32> timerValue[2];
     vector<Piece *> *pieces_w, *pieces_b;
     Piece *selected, *King[2];
     FreePieces *free_pieces[2];

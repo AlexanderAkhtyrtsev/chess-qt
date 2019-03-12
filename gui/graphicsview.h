@@ -1,6 +1,6 @@
 #pragma once
 #include "game/board.h"
-
+#include "game/gametimer.h"
 class GraphicsView : public QGraphicsView
 {
 public:

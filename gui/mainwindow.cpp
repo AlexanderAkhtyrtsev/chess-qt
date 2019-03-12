@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "../game/grid.h"
+#include "../game/gametimer.h"
 
 void MainWindow::test()
 {
@@ -34,21 +35,40 @@ MainWindow::MainWindow(QWidget *parent)
     btn_automove = new QPushButton("Do automove");
     vbl = new QVBoxLayout();
     hbl = new QHBoxLayout();
+    hbl_timers = new QHBoxLayout();
 
     hbl->addWidget(list_sel1);
     hbl->addWidget(btn_newGame);
     hbl->addWidget(btn_automove);
     vbl->setMargin(0);
+
+
     view = new GraphicsView();
     board = new Board(view);
     board->window = this;
     view->board = board;
     view->setScene(board);
+
+    timer[0] = new GameTimer(board, this);
+    timer[1] = new GameTimer(board, this);
+   /* hbl_timers->addWidget(timer[1]);
+    hbl_timers->addWidget(timer[0]);
+    hbl_timers->setAlignment(timer[0], Qt::AlignRight);
+    */
+
+
+    timer[0]->show();
+    timer[1]->show();
+
     vbl->addLayout(hbl);
+    vbl->addLayout(hbl_timers);
     vbl->addWidget(view);
     this->setLayout(vbl);
     QObject::connect(btn_newGame, SIGNAL(clicked()), this->board, SLOT(newGame()));
     QObject::connect(btn_automove, SIGNAL(clicked()), this->board, SLOT(doAutoMove()));
+
+    timer[1]->raise();
+    timer[0]->raise();
 }
 
 
@@ -67,6 +87,8 @@ int MainWindow::sel1val()
 void MainWindow::resizeEvent(QResizeEvent *pe)
 {
     //view->resize(this->board->grid_size*10,this->board->grid_size*10);
+    timer[1]->move(0, this->height()-timer[1]->height());
+    timer[0]->move(this->width()-timer[0]->width(), this->height()-timer[0]->height());
     pe->accept();
 }
 

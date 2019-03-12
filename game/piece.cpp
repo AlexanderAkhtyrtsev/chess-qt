@@ -50,6 +50,7 @@ void Piece::remove()
 void Piece::placeTo(Grid *lgrid_to)
 {
     assert(lgrid_to != nullptr);
+
     if (this->lgrid != nullptr)
         this->lgrid->lpiece = nullptr;
 
@@ -429,23 +430,27 @@ Piece::~Piece()
     // delete anim;
 }
 
-void Piece::placeTo(Grid *grid_to)
+void Piece::placeTo(Grid *grid_to, bool show)
 {
     this->lpiece->placeTo(grid_to->lgrid);
-    this->grid->piece = nullptr;
+    if (this->grid) this->grid->piece = nullptr;
     this->grid = grid_to;
     this->grid->piece = this;
+    if (show)
     this->setPos(grid->pos());
 }
 
 
 void Piece::makeMove(Grid *gridTo)
 {
-
     if ( board->options->flipBoard ) {
         board->reverse(board->lboard->move);
     }
+
+
+
     this->lpiece->makeMove(gridTo->lgrid);
+
     assert ( !lpiece->lboard->currentMove->isNull() );
 
     board->selected = nullptr;
@@ -460,16 +465,23 @@ void Piece::makeMove(Grid *gridTo)
         if (grid->offset(2, 0)->lgrid == lpiece->lboard->currentMove->to)
         {
             Piece *Rook = grid->offset(3, 0)->piece;
-            Rook->animateTo(Rook->grid->offset(-2, 0));
+            Grid *g = Rook->grid->offset(-2, 0);
+            Rook->animateTo(g);
+            Rook->placeTo(g, false);
         }
         else if (grid->offset(-2, 0)->lgrid == lpiece->lboard->currentMove->to)
         {
             Piece *Rook = grid->offset(-4, 0)->piece;
-            Rook->animateTo(Rook->grid->offset(3, 0));
+            Grid *g = Rook->grid->offset(3, 0);
+            Rook->animateTo(g);
+            Rook->placeTo(g, false);
         }
 
     }
     board->ResetHighligtedGrids();
+    board->timerValue[!board->lboard->move].push(board->window->timer[!board->lboard->move]->time());
+    board->window->timer[!board->lboard->move]->stop();
+    board->window->timer[board->lboard->move]->start();
 }
 
 void Piece::moveEnd()
@@ -488,10 +500,10 @@ void Piece::moveEnd()
     board->piecesSelectable = true;
     this->setZValue(1);
     anim->disconnect();
+
     if (!board->lboard->move) {
         QTimer::singleShot(300, board, &Board::computerMove);
     }
-
 }
 
 void Piece::animateTo(Grid *gridTo, bool moveEnd)
@@ -549,7 +561,7 @@ void Piece::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *
     painter->save();
         painter->drawPixmap(0, 0, fig,
                            (lpiece->type-1) * board->grid_size, lpiece->isWhite ? 0 : board->grid_size,
-                           board->grid_size, board->grid_size);
+                           board->grid_size*1, board->grid_size);
     painter->restore();
 }
 

@@ -118,7 +118,7 @@ void Grid::paint(QPainter *painter, const QStyleOptionGraphicsItem*, QWidget*)
         painter->save();
         painter->setRenderHint(QPainter::Antialiasing, true);
         painter->setOpacity(0.8);
-         int p =  static_cast<int>(board->grid_size * 0.09);
+         int p =  static_cast<int>(board->grid_size * 0.05);
 
         QRect rect(p, p, board->grid_size-p*2, board->grid_size-p*2);
 
@@ -130,12 +130,14 @@ void Grid::paint(QPainter *painter, const QStyleOptionGraphicsItem*, QWidget*)
                     board->selected && lgrid->lpiece == board->selected->lpiece ? Qt::blue : Qt::red ;
             break;
         case 2:
-            color = Qt::gray;
+            color = Qt::darkBlue;
             break;
         };
+        color.setAlpha(80);
         QBrush brush2(color);
-               painter->setPen(QPen(brush2, p, Qt::SolidLine, Qt::RoundCap));
-               painter->drawRect(rect);
+        painter->setPen(QPen(brush2, p, Qt::SolidLine));
+        painter->setBrush(brush2);
+        painter->drawRect(rect);
         painter->restore();
     }
 }

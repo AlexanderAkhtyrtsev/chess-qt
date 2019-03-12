@@ -15,7 +15,7 @@ public:
     QPropertyAnimation *anim;
     Board *board;
     Grid *grid;
-    void placeTo(Grid *grid_to);
+    void placeTo(Grid *grid_to, bool show = true);
     void makeMove(Grid *);
     void animateTo(Grid *, bool moveEnd = false);
     void select();

@@ -11,8 +11,8 @@ GraphicsView::GraphicsView(QWidget *parent) : QGraphicsView(parent)
 void GraphicsView::resizeEvent(QResizeEvent *pe)
 {
     int w = width(), h = height(); 
-    board->grid_size = qMin(w/BOARD_SIZE, h/BOARD_SIZE);
-    board->setSceneRect(QRect(0, 0, board->grid_size * BOARD_SIZE, board->grid_size * BOARD_SIZE));
+    board->grid_size = qMin(int(w/board->size.width()*0.95), h/board->size.height());
+    board->setSceneRect(QRect(0, 0, board->grid_size * board->size.width(), board->grid_size * board->size.height()));
     board->ReplaceElements();
     QGraphicsView::resizeEvent(pe);
 }

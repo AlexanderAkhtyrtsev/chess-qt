@@ -41,7 +41,6 @@ Piece *FreePieces::removePiece(Piece *piece)
 {
     vector<Piece *>::iterator i = std::find(m_pieces->begin(), m_pieces->end(), piece);
     if ( i != m_pieces->end() ) m_pieces->erase(i);
-    qDebug() << "piece w=" << piece->lpiece->isWhite << "removed. move=" << m_board->lboard->move;
     return piece;
 }
 
@@ -58,6 +57,6 @@ void FreePieces::update()
          bottom = 9;
         int y = m_board->reverse() ? (piece->lpiece->isWhite ? bottom : top) : (piece->lpiece->isWhite ? top : bottom);
         if ( i > 0 && piece->lpiece->type != m_pieces->at(i-1)->lpiece->type ) empty+=2;
-        piece->setPos( (empty + i) * (m_board->grid_size) / 3.5 + m_board->grid_size, y * m_board->grid_size );
+        piece->setPos( (empty + i) * (m_board->grid_size) / 3.5, y * m_board->grid_size );
     }
 }
