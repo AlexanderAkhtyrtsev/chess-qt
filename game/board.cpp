@@ -3,8 +3,6 @@
 #include <time.h>
 #include "freepieces.h"
 
-int iter=0; // what is "Iteration"?
-
 
 //*
 const int L::Board::initPiecePos[8][8] = {
@@ -19,6 +17,8 @@ const int L::Board::initPiecePos[8][8] = {
 };
 //*/
 
+
+
 namespace L {
 
 Board::Board(){
@@ -32,19 +32,91 @@ Board::Board(){
     Piece *p_piece;
     int pieceIndex = 0;
     for(int i=0; i<8; i++)
-    for(int j=0; j<8; j++)
-         {
-             grids[j][i] = new L::Grid(j, i, this);
-             if ( !initPiecePos[i][j] ) continue;
-             p_piece = new Piece(static_cast<Piece::Type>(qAbs(initPiecePos[i][j])), initPiecePos[i][j] > 0, grids[j][i], this);
-             p_piece->index = pieceIndex++;
-             pieces->push_back(p_piece);
-             (p_piece->isWhite ? pieces_w : pieces_b)->push_back(p_piece);
-         }
-
+    {
+        for(int j=0; j<8; j++)
+        {
+            grids[j][i] = new L::Grid(j, i, this);
+            if ( !initPiecePos[i][j] ) continue;
+            p_piece = new Piece(static_cast<Piece::Type>(qAbs(initPiecePos[i][j])), initPiecePos[i][j] > 0, grids[j][i], this);
+            p_piece->index = pieceIndex++;
+            pieces->push_back(p_piece);
+            (p_piece->isWhite ? pieces_w : pieces_b)->push_back(p_piece);
+        }
+    }
     King[1] = pieces->at(4);
     King[0] = pieces->at(28);
+
 }
+
+Board::Board(const Board &b)
+{
+    move                = true; // true - white
+    pieces              = new vector<Piece     *>;
+    pieces_w            = new vector<Piece     *>;
+    pieces_b            = new vector<Piece     *>;
+    moves               = new vector<PieceMove *>;
+    currentMove         = nullptr;
+       totalIterations = 0;
+
+    Piece *p_piece;
+    int pieceIndex = 0;
+    for(int i=0; i<8; i++)
+    {
+        for(int j=0; j<8; j++)
+        {
+            grids[j][i] = new L::Grid(j, i, this);
+            if ( !initPiecePos[i][j] ) continue;
+            p_piece = new Piece(static_cast<Piece::Type>(qAbs(initPiecePos[i][j])), initPiecePos[i][j] > 0, grids[j][i], this);
+            p_piece->index = pieceIndex++;
+            pieces->push_back(p_piece);
+            (p_piece->isWhite ? pieces_w : pieces_b)->push_back(p_piece);
+        }
+    }
+    King[1] = pieces->at(4);
+    King[0] = pieces->at(28);
+
+    for(PieceMove *pm : *b.moves)
+    {
+        Piece *p = this->pieces->at( quint32(pm->lpiece->index) );
+        Grid *gridTo = this->grids[pm->to->x][pm->to->y];
+        p->makeMove(gridTo);
+    }
+
+}
+
+
+Board::~Board()
+{
+    for(Piece *p: *this->pieces)
+    {
+        delete p;
+    }
+    for(quint32 i=0; i<8; i++){
+        for(quint32 j=0; j<8; j++){
+            delete this->grids[i][j];
+        }
+    }
+    for(PieceMove *pm: *this->moves){
+        delete pm;
+    }
+    delete pieces_b;
+    delete pieces_w;
+    delete pieces;
+}
+
+
+Grid *Board::grid(int x, int y) const
+{
+    if (x < 0 || x > 7 || y < 0 || y > 7) return nullptr;
+    return this->grids[x][y];
+}
+
+Piece *Board::piece(int index) const
+{
+    if (quint32(index) >= this->pieces->size() ) return nullptr;
+    return this->pieces->at(quint32(index));
+}
+
 
 /**
  * returns 1 if check mate, 2 if draw, 0 if in game
@@ -52,7 +124,7 @@ Board::Board(){
 
 int Board::check_game()
 {
-    bool game_over = 2; // 0 - the game isn't over; 1 - check mate; 2 - draw;
+    int game_over = 2; // 0 - the game isn't over; 1 - check mate; 2 - draw;
     vector<Piece *> *pieces = move ? pieces_w : pieces_b;
     Piece *temp;
     for(unsigned i = 0; i < pieces->size(); i++)
@@ -77,7 +149,7 @@ int Board::check_game()
 void Board::undoMove()
 {
     if (!moves->size()) return;
-    PieceMove *last = moves->at(moves->size() - 1);
+    PieceMove *last = moves->back();
 
 
     if (last->extra)
@@ -107,14 +179,21 @@ void Board::undoMove()
     if ( last->removed )
     {
         last->removed->inGame = true;
-        last->removed->placeTo(last->to);
+        if (last->extra && last->removed->type == L::Piece::Pawn){
+            last->removed->placeTo(last->to->offset(0, last->removed->isWhite ? 1 : -1));
+        }
+        else {
+            last->removed->placeTo(last->to);
+        }
     }
 
-    last->lpiece->moves->erase(last->lpiece->moves->end()-1);
+    last->lpiece->moves--;
     moves->erase( moves->end() - 1 );
+    this->posChanged();
     delete last;
     move = !move;
 }
+
 
 
 /**
@@ -126,71 +205,92 @@ bool Board::is_check(bool w)
 }
 
 
+
 int Board::getCurrentScore()
 {
-    //int Points = {None, King, Queen, Bishop, Knight, Rook, Pawn};
-    int points[] = {0,    0,    150,    55,      60,      80,   5};
-    int total = 0;
+    //int Points =              {None, King, Queen, Bishop, Knight, Rook, Pawn};
+    const static int points[] = {0,    10000,    1000,    500,     510,  800,   100};
 
-    if (this->check_game() == 1) {
+    int gameState = this->check_game();
+    if (gameState == 1) {
         return this->move ? MIN_SCORE : MAX_SCORE;
+    } else if (gameState == 2){
+        return 0;
     }
 
+    int total = 0;
     for( L::Piece *piece : *pieces ){
         if (piece->inGame)
         {
             total += piece->isWhite ? points[piece->type] : -points[piece->type];
-
-
-
-            // too low
-            /*
-            if (moves->size() < 20 && piece->type > Piece::King && piece->type < Piece::Pawn)
-            {
-                if (piece->getGrids(false).size())
-                {
-                    total += piece->isWhite ? 1 : -1;
-                }
-            }
-            */
+            total += getPiecePosEval(piece);
         }
     }
-    return total ;//+ this->getAllMoves().size();
+    return total ;
+}
+
+void Board::posChanged()
+{
+    for(Piece *p: *this->pieces)
+    {
+        p->resetAvailMoves();
+    }
 }
 
 int Board::minimax(int depth, int alpha, int beta)
 {
 
 
-    if (depth == 0 || this->check_game() == 1) {
+    if (depth == 0 || this->check_game()) {
         return this->getCurrentScore();
     }
 
     vector<PieceMove> moves = this->getAllMoves();
     int bestMove = this->move ? MIN_SCORE : MAX_SCORE;
     for(PieceMove pieceMove : moves) {
-        iter++;
+        this->totalIterations++; // for iter per sec counting.
+
         pieceMove.lpiece->makeMove(pieceMove.to);
         int eval = this->minimax(depth -1, alpha, beta);
         this->undoMove();
 
         if (this->move) { // is maximizing player
-
             bestMove = qMax (bestMove, eval);
             alpha = qMax(alpha, eval);
-            if (beta <= alpha) {
-                break;
-            }
         }
         else {
             beta = qMin(beta, eval);
             bestMove = qMin (bestMove, eval);
-            if (beta <= alpha) {
-                break;
-            }
+        }
+        if (beta <= alpha) {
+          //  break;
         }
     }
     return bestMove;
+}
+
+int Board::getPiecePosEval(Piece *piece)
+{
+    const static int pawnPosEval[8][8] = {
+        { 0, 0, 0, 0, 0, 0, 0, 0},
+        {-1,-1,-1,-1,-1,-1,-1,-1},
+        {-1,-1,-1,-1,-1,-1,-1,-1},
+        { 2,-1,-1, 2, 2, 0, 2, 1},
+        { 2, 2, 2, 3, 3, 3, 3, 4},
+        { 2, 2, 2, 3, 3, 4, 4, 4},
+        { 3, 2, 2, 4, 4, 4, 4, 4},
+        { 0, 0, 0, 0, 0, 0, 0, 0}
+    };
+
+
+
+    if (piece->type == L::Piece::Pawn)
+    {
+        bool w = piece->isWhite;
+        int p = pawnPosEval[piece->lgrid->x][w ? piece->lgrid->y : 7 - (piece->lgrid->y)];
+        return w ? p : -p;
+    }
+    return 0;
 }
 
 PieceMove Board::getBestMove(int depth)
@@ -198,7 +298,7 @@ PieceMove Board::getBestMove(int depth)
 
     PieceMove bestMove;
     vector<PieceMove> eqMoves, moves = this->getAllMoves();
-
+    this->totalIterations = 0;
     if (depth > 0) {
 
         if (!moves.size()) {
@@ -211,7 +311,7 @@ PieceMove Board::getBestMove(int depth)
 
         for(PieceMove pieceMove : moves)
         {
-            iter++;
+            this->totalIterations++;
             pieceMove.lpiece->makeMove(pieceMove.to);
             int m = minimax(depth - 1);
             this->undoMove();
@@ -237,15 +337,18 @@ PieceMove Board::getBestMove(int depth)
             }
         }
     }
-    if (eqMoves.size()){
+
+    if (eqMoves.size()) {
         unsigned int r = (static_cast<unsigned int>(qrand()) % eqMoves.size());
         bestMove = eqMoves.size() > 1 ? eqMoves[r] : eqMoves[0];
+        qDebug() << "(random from best moves)";
     }
 
-    else if (bestMove.isNull() && moves.size()){
+    else if (bestMove.isNull() && moves.size()) {
         unsigned int r = (static_cast<unsigned int>(qrand()) % moves.size());
         bestMove = moves[r];
-        qDebug() << "(random move)";
+
+                qDebug() << "(random from ALL moves)";
     }
 
     return bestMove;
@@ -258,15 +361,12 @@ vector<PieceMove> Board::getAllMoves()
     vector<L::Piece *> availPieces, *currentPieces = (this->move ? pieces_w : pieces_b);
 
     for (L::Piece *piece : *currentPieces) {
-        if(piece->inGame && piece->getGrids().size() > 0 ) {
-                availPieces.push_back(piece);
-        }
-    }
-
-    for(Piece *piece : availPieces) {
-        vector<Grid*> moves = piece->getGrids();
-        for(Grid *g : moves) {
-            result.push_back(PieceMove(piece, piece->lgrid, g));
+        if(piece->inGame) {
+            availPieces.push_back(piece);
+            vector<Grid*> moves = piece->getGrids();
+            for(Grid *g : moves) {
+                result.push_back(PieceMove(piece, piece->lgrid, g));
+            }
         }
     }
 
@@ -279,16 +379,20 @@ PieceMove::PieceMove(L::Piece *_piece, L::Grid *_from, L::Grid *_to, L::Piece *r
 {
 }
 
-bool PieceMove::isNull() const
+/**
+ * PieceMove::isNull returns lpiece=1, grid_from=2, grid_to=3
+ */
+
+int PieceMove::isNull() const
 {
-    return (!this->lpiece || !this->from || !this->to);
+    return (!this->lpiece ? 1 : !this->from ? 2 : !this->to ? 3 : 0);
 }
 
 } // NAMESPACE L
 
-Board::Board(QWidget* parent) :
-    QGraphicsScene(parent)
+Board::Board(QWidget* parent) : QGraphicsScene(parent)
 {
+    m_endGame           = false;
     size                = QSize(8, 10);
     grid_size = parent->width() / size.width();
     setSceneRect(0, 0, size.width()*grid_size, size.height()*grid_size);
@@ -324,7 +428,7 @@ Board::Board(QWidget* parent) :
     free_pieces[1] = new FreePieces(this); // white
 
     Piece *p_piece;
-     for(quint32 i=0; i<lboard->pieces->size(); i++){
+    for(quint32 i=0; i<lboard->pieces->size(); i++){
              p_piece = new Piece(lboard->pieces->at(i), this);
              p_piece->grid = Grid::get(p_piece->lpiece->lgrid, this);
              pieces->push_back(p_piece);
@@ -336,19 +440,43 @@ Board::Board(QWidget* parent) :
 
      for(unsigned i=0; i<pieces->size(); i++)
      {
-         addItem(pieces->at(i));
+         this->addItem(pieces->at(i));
      }
      //window->timer[1]->start();
+     /*
+     for(auto p : *pieces)
+     {
+         if (p->lpiece->type > 2){
+             p->lpiece->remove();
+             p->remove();
+         }
+     }
+     //*/
 }
 
 Board::~Board()
 {
-    delete chess_tiles;
-    delete pieces;
+    for(Piece *p: *this->pieces)
+    {
+        delete p;
+    }
+
+    delete free_pieces[0];
+    delete free_pieces[1];
+
+    for(int i=0; i<8; i++) {
+        for(int j=0; j<8; j++){
+            delete this->grids[i][j];
+        }
+    }
+    delete aiThread;
+    delete options;
+    delete pieces  ;
     delete pieces_w;
     delete pieces_b;
-
-    // delete grids;
+    delete lboard;
+    delete boardTex;
+    delete chess_tiles;
 }
 
 // TODO: check this one
@@ -393,6 +521,7 @@ void Board::newGame()
             f_count ++;
         }
     }
+    lboard->posChanged();
     ResetHighligtedGrids();
 }
 
@@ -401,12 +530,37 @@ void Board::doAutoMove()
     this->computerMove();
 }
 
+void Board::pieceMoveCompleted()
+{
+    if (lboard->check_game()){
+        this->endGame();
+        return;
+    }
+    if (!lboard->move) {
+        QTimer::singleShot(500, this, &Board::computerMove);
+    }
+}
+
 
 void Board::undoMove()
 {
-    if (!lboard->moves->size() || aiThread->isRunning()) return;
+    if (!lboard->moves->size()) return;
 
-    L::PieceMove *last = lboard->moves->at(lboard->moves->size()-1);
+    if (aiThread->isRunning())
+    {
+        aiThread->terminate();
+        return;
+    }
+
+
+    if (m_endGame)
+    {
+        piecesSelectable = true;
+        m_endGame = false;
+        this->window->timer[lboard->move]->start();
+    }
+
+    L::PieceMove *last = lboard->moves->back();
     Piece *piece = Piece::get(last->lpiece, this);
 
     // Stopping animation
@@ -436,7 +590,6 @@ void Board::undoMove()
         }
 
         window->timer[lboard->move]->stop();
-        timerValue[!lboard->move].pop();
         window->timer[!lboard->move]->start();
 
     } else {
@@ -445,7 +598,8 @@ void Board::undoMove()
         if (removed){
             free_pieces[removed->lpiece->isWhite]->removePiece(removed);
             free_pieces[removed->lpiece->isWhite]->update();
-            removed->placeTo(Grid::get(last->to, this));
+            Grid *prevPos_grid = Grid::get(last->extra && last->removed->type == L::Piece::Pawn? last->to->offset(0, last->removed->isWhite ? 1 : -1) : last->to, this);
+            removed->placeTo(prevPos_grid);
         }
 
         // Castling
@@ -467,7 +621,7 @@ void Board::undoMove()
         }
         piece->placeTo(Grid::get(last->from, this));
 
-        window->timer[lboard->move]->stop()->setTime(timerValue[lboard->move].top());
+        window->timer[lboard->move]->stop()->setTime(!timerValue[lboard->move].empty() ? timerValue[lboard->move].top() : 0);
         timerValue[lboard->move].pop();
         window->timer[!lboard->move]->start();
     }
@@ -484,6 +638,7 @@ void Board::computerMove()
     aiThread->start();
     piecesSelectable = false;
 }
+
 
 void Board::computerMoveEnd()
 {
@@ -523,6 +678,37 @@ bool Board::reverse(bool reverse)
     free_pieces[0]->update();
     free_pieces[1]->update();
     return m_reverse;
+}
+
+void Board::endGame()
+{
+    piecesSelectable = false;
+    m_endGame = true;
+    this->window->timer[lboard->move]->stop();
+    for(int i=-1; i<2; i++)
+    {
+        for(int j=-1; j<2; j++)
+        {
+            Grid *g = King[lboard->move]->grid->offset(i,j);
+
+            if (g) // grid exists
+            {
+                vector<L::Piece *> attackingPieces = g->lgrid->attackedBy(!lboard->move);
+                if (!(i || j)) {
+                    for(L::Piece *attackingPiece: attackingPieces)
+                       Grid::get(attackingPiece->lgrid, this)->Highlight();
+                }
+
+                else  if (g->lgrid->empty() // grid empty
+                        || (g->lgrid->lpiece->isWhite != lboard->move)) // or grid not empty & piece is enemie's
+                {
+                    if (attackingPieces.size()){
+                        Grid::get(attackingPieces.at(0)->lgrid, this)->Highlight();
+                    }
+                }
+            }
+        }
+    }
 }
 
 
@@ -569,14 +755,14 @@ AIThread::AIThread(Board *_board)
 void AIThread::run()
 {
     qsrand(static_cast<quint32>(time(nullptr)));
-    iter = 0;
-    qint64 t1, t2;
-    float tdiff;
-    t1 = QDateTime::currentMSecsSinceEpoch();
-    //L::Board *lboard = new L::Board(*board->lboard);
-    bestMove = board->lboard->getBestMove(board->window->sel1val());
-    t2 = QDateTime::currentMSecsSinceEpoch();
-    tdiff = t2-t1;
-    //delete lboard;
-    qDebug() << iter << "iter. /" << (tdiff/1000.0f) << "s =" << (iter/(tdiff/1000.0f));
+    QElapsedTimer timer;
+    timer.start();
+    L::Board *lboard = board->lboard;
+                    //new L::Board(*board->lboard);
+    bestMove = lboard->getBestMove(board->window->sel1val());
+    qreal elapsed = qreal(timer.elapsed()) / 1000;
+
+
+    qDebug() << lboard->totalIterations << "iter. /" << elapsed << "s =" << (qreal(lboard->totalIterations)/(elapsed)) << "i/s";
+
 }

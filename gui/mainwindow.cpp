@@ -31,6 +31,7 @@ MainWindow::MainWindow(QWidget *parent)
     list_sel1->addItem("Search depth: 4", 4);
     list_sel1->addItem("Search depth: 5", 5);
     list_sel1->setCurrentIndex(3);
+
     btn_newGame = new QPushButton("New game");
     btn_automove = new QPushButton("Do automove");
     vbl = new QVBoxLayout();
@@ -57,25 +58,27 @@ MainWindow::MainWindow(QWidget *parent)
     */
 
 
-    timer[0]->show();
-    timer[1]->show();
 
-    vbl->addLayout(hbl);
+
     vbl->addLayout(hbl_timers);
     vbl->addWidget(view);
+    vbl->addLayout(hbl);
     this->setLayout(vbl);
     QObject::connect(btn_newGame, SIGNAL(clicked()), this->board, SLOT(newGame()));
     QObject::connect(btn_automove, SIGNAL(clicked()), this->board, SLOT(doAutoMove()));
 
-    timer[1]->raise();
     timer[0]->raise();
+    timer[1]->raise();
 }
 
 
 MainWindow::~MainWindow()
 {
+    delete timer[0];
+    delete timer[1];
     delete board;
     delete view;
+    delete hbl_timers;
 }
 
 int MainWindow::sel1val()
@@ -87,8 +90,13 @@ int MainWindow::sel1val()
 void MainWindow::resizeEvent(QResizeEvent *pe)
 {
     //view->resize(this->board->grid_size*10,this->board->grid_size*10);
-    timer[1]->move(0, this->height()-timer[1]->height());
-    timer[0]->move(this->width()-timer[0]->width(), this->height()-timer[0]->height());
+    timer[0]->resize(this->width()/2, int(this->height() * 0.05));
+    timer[1]->resize(this->width()/2, int(this->height() * 0.05));
+
+    timer[1]->move(0, 0);
+    timer[0]->move(this->width()-timer[0]->width(), 0);
+    timer[0]->setAlignment(Qt::AlignRight);
+    timer[1]->setAlignment(Qt::AlignLeft);
     pe->accept();
 }
 

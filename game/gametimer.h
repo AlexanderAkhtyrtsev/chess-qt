@@ -2,7 +2,7 @@
 #include "gui/mainwindow.h"
 class Board;
 
-class GameTimer : public QWidget
+class GameTimer : public QLabel
 {
     Q_OBJECT
 private:
@@ -20,11 +20,16 @@ public slots:
     GameTimer *stop();
     GameTimer *reset();
     void tick();
+    void showTime();
     // QWidget interface
 protected:
-    void paintEvent(QPaintEvent *event);
+    //void paintEvent(QPaintEvent *event);
 
     // QWidget interface
 public:
     QSize sizeHint() const;
+
+    // QWidget interface
+protected:
+    void resizeEvent(QResizeEvent *event);
 };

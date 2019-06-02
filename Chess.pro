@@ -20,7 +20,6 @@ HEADERS += \
     game/grid.h \
     gui/graphicsview.h \
     gui/mainwindow.h \
-    gui/window.h \
     game/piece.h \
     game/freepieces.h \
     game/gametimer.h
@@ -31,7 +30,6 @@ SOURCES += \
     gui/graphicsview.cpp \
     gui/mainwindow.cpp \
     main.cpp \
-    gui/window.cpp \
     game/piece.cpp \
     game/freepieces.cpp \
     game/gametimer.cpp

@@ -1,6 +1,7 @@
 #include "grid.h"
 
 namespace L {
+
 Grid::Grid(int _x, int _y, L::Board *_board) : x(_x), y(_y), lboard(_board)
 {
     lpiece = nullptr;
@@ -49,6 +50,23 @@ bool Grid::empty() const
     return lpiece == nullptr;
 }
 
+vector<Piece *> Grid::attackedBy(bool w)
+{
+    vector<Piece *> *pieces = w ? lboard->pieces_w : lboard->pieces_b;
+    vector<Grid *> grids;
+    vector<Piece *> result;
+    for(Piece *piece: *pieces)
+    {
+        if (!piece->inGame) continue;
+        grids = piece->getGrids(true);
+        if ( std::find(grids.begin(), grids.end(), this) != grids.end() )
+        {
+            result.push_back(piece);
+        }
+    }
+    return result;
+}
+
 
 } // NAMESPACE L
 
@@ -90,6 +108,7 @@ Grid *Grid::offset(int dx, int dy)
 
 Grid *Grid::get(L::Grid *l_grid, Board *board)
 {
+    if (!l_grid) return nullptr;
     return board->grids [l_grid->x][l_grid->y];
 }
 

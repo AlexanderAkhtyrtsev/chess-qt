@@ -34,6 +34,7 @@ public:
     bool is_attacked(bool w);
     QString name();
     bool empty() const;
+    vector<Piece *> attackedBy(bool w);
     int x, y;
     L::Piece* lpiece;
     L::Board* lboard;
