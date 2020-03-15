@@ -21,17 +21,17 @@ Piece *FreePieces::addPiece(Piece *piece)
         bool f = false;
         for(unsigned i=0; i<sz; i++) {
             if(m_pieces->at(i)->lpiece->type == piece->lpiece->type) {
-                m_pieces->insert(m_pieces->begin()+1+i, piece);
+                m_pieces->insert(m_pieces->begin()+i+1, piece);
                 f = true;
                 break;
             }
         }
+
         if (!f) {
             m_pieces->push_back(piece);
         }
     }
     update();
-
     return piece;
 }
 
@@ -56,7 +56,9 @@ void FreePieces::update()
         int top = 0,
          bottom = 9;
         int y = m_board->reverse() ? (piece->lpiece->isWhite ? bottom : top) : (piece->lpiece->isWhite ? top : bottom);
-        if ( i > 0 && piece->lpiece->type != m_pieces->at(i-1)->lpiece->type ) empty+=2;
+        if ( i > 0 && piece->lpiece->type != m_pieces->at(i-1)->lpiece->type ) {
+            empty+=2;
+        }
         piece->setPos( (empty + i) * (m_board->grid_size) / 3.5, y * m_board->grid_size );
     }
 }

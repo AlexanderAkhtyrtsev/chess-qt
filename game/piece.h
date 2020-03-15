@@ -47,8 +47,6 @@ class Piece {
 public:
     enum Type {None, King, Queen, Bishop, Knight, Rook, Pawn};
 
-    vector<Grid *> m_availMoves, m_availMovesToAttack;
-    bool m_availMoves_def, m_availMovesToAttack_def;
 
     Piece(Type = Pawn, bool white = true, L::Grid * = nullptr, L::Board * = nullptr);
     ~Piece();
@@ -65,7 +63,6 @@ public:
 
     void placeTo(L::Grid *gridTo); // setGrid
     void clearMoves();
-    void resetAvailMoves();
     bool isProtected();
     bool moved() const;
     void makeMove(L::Grid *);

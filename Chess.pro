@@ -22,20 +22,30 @@ HEADERS += \
     gui/mainwindow.h \
     game/piece.h \
     game/freepieces.h \
-    game/gametimer.h
+    game/gametimer.h \
+    game/poseval.h \
+    gui/settingswnd.h
 
 SOURCES += \
     game/board.cpp \
     game/grid.cpp \
     gui/graphicsview.cpp \
     gui/mainwindow.cpp \
+    gui/settingswnd.cpp \
     main.cpp \
     game/piece.cpp \
     game/freepieces.cpp \
     game/gametimer.cpp
 
 DISTFILES += \
-    android/AndroidManifest.xml
+    android/AndroidManifest.xml \
+    android/build.gradle \
+    android/gradle/wrapper/gradle-wrapper.jar \
+    android/gradle/wrapper/gradle-wrapper.properties \
+    android/gradlew \
+    android/gradlew.bat \
+    android/res/values/libs.xml \
+    android/res/values/libs.xml
 
 win32 {
     RC_ICONS = img/icon.ico

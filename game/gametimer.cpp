@@ -1,5 +1,6 @@
 #include "gametimer.h"
-#include "board.h"
+#include <QDateTime>
+
 GameTimer::GameTimer(Board *brd, QWidget *parent) : QLabel(parent)
 {
     board = brd;
@@ -8,8 +9,11 @@ GameTimer::GameTimer(Board *brd, QWidget *parent) : QLabel(parent)
     timer = new QTimer;
     timer->setInterval(1000);
     QObject::connect(timer, SIGNAL(timeout()), SLOT(tick()));
-    setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
-    resize(400,32);
+    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Maximum);
+    setMargin(0);
+
+    setAttribute(Qt::WA_TranslucentBackground);
+    resize(128,32);
     this->setText("--:--");
 }
 
@@ -26,7 +30,7 @@ quint32 GameTimer::time() const
 void GameTimer::setTime(quint32 time)
 {
     passed = time;
-    update();
+    this->showTime();
 }
 
 GameTimer *GameTimer::start()
@@ -39,7 +43,6 @@ GameTimer *GameTimer::start()
 
 GameTimer *GameTimer::stop()
 {
-
     timer->stop();
     passed += t_tick;
     t_tick = 0;
@@ -58,9 +61,8 @@ GameTimer *GameTimer::reset()
 }
 
 void GameTimer::tick()
-{
+{ 
     t_tick = QDateTime::currentMSecsSinceEpoch() - t_start;
-
     this->showTime();
 }
 
@@ -82,9 +84,7 @@ QSize GameTimer::sizeHint() const
 
 void GameTimer::resizeEvent(QResizeEvent *)
 {
-    QFont font = this->font();
-    font.setPixelSize(this->height());
-    this->setFont(font);
+
 }
 
 

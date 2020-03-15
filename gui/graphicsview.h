@@ -1,17 +1,11 @@
 #pragma once
 #include "game/board.h"
-#include "game/gametimer.h"
+
 class GraphicsView : public QGraphicsView
 {
 public:
-    GraphicsView(QWidget *parent = 0);
+    GraphicsView(QWidget *parent = nullptr);
     Board *board;
 protected:
     void resizeEvent(QResizeEvent *);
-/*
-    // QWidget interface
-protected:
-    void mouseReleaseEvent(QMouseEvent *);
-    */
 };
-

@@ -5,6 +5,7 @@
 #include <stack>
 #include <algorithm>
 #include <cassert>
+#include "gametimer.h"
 
 const int MIN_SCORE = -999999;
 const int MAX_SCORE =  999999;
@@ -28,36 +29,40 @@ class Piece;
 
 class Board {
 public:
-    Board();
-    Board(const Board& b);
-    ~Board();
-    qint64 totalIterations;
     static const int initPiecePos[8][8];
     Grid *grids[8][8];
-    Grid *grid(int x, int y) const;
-    Piece *piece(int index) const;
-    bool move;
     vector<PieceMove *> *moves;
     PieceMove *currentMove;
     vector<Piece *> *pieces, *pieces_w, *pieces_b;
     Piece *King[2];
+    bool move;
 
-    vector<PieceMove> getAllMoves();
-    PieceMove getBestMove(int depth = 1);
+    Board();
+    Board(const Board& b);
+    ~Board();
+    Grid *grid(int x, int y) const;
+    Piece *piece(int index) const;
     bool is_check(bool w);
-    int getCurrentScore();
-    void posChanged();
-    int minimax(int depth, int alpha = MIN_SCORE, int beta = MAX_SCORE);
-    int getPiecePosEval(Piece *piece);
     int check_game();
     void undoMove();
+
+    vector<PieceMove> getAllMoves();
+
+    int getCurrentScore();
+
+    int getPiecePosEval(Piece *piece);
 };
 
 
 class PieceMove
 {
 public:
-    PieceMove(L::Piece *_piece = nullptr, L::Grid *_from = nullptr, L::Grid *_to = nullptr, L::Piece *rem = nullptr, bool _extra = false);
+    PieceMove(L::Piece *_piece = nullptr,
+              L::Grid *_from = nullptr,
+              L::Grid *_to = nullptr,
+              L::Piece *rem = nullptr,
+              bool _extra = false);
+
     L::Piece *lpiece;
     L::Grid *from, *to;
     L::Piece *removed;
@@ -66,7 +71,7 @@ public:
 };
 
 
-}
+} // L NAMESPACE
 
 class Board : public QGraphicsScene
 {
@@ -75,16 +80,20 @@ class Board : public QGraphicsScene
     QGraphicsPixmapItem *boardTex;
     unsigned m_size;
     bool m_endGame;
+    QGraphicsProxyWidget *pw_timer[2];
+    QGraphicsTextItem *coords[32];
 public:
     L::Board  *lboard;
     AIThread *aiThread;
+    GameTimer *timer[2];
+
     QSize size;
     Board(QWidget* = nullptr);
     ~Board();
 
-    void ReplaceElements();
+    void replaceElements();
     void undoMove();
-    Board *ResetHighligtedGrids();
+    Board *resetHighligtedGrids();
     bool reverse() const; // getter
     bool reverse(bool reverse);     // setter
 
@@ -114,9 +123,12 @@ protected:
 class AIThread : public QThread
 {
     Board *board;
-    public:
-
+    qint64 totalIterations;
+public:
     L::PieceMove bestMove;
     AIThread(Board *board);
     void run();
+    int minimax(L::Board *lboard, int depth, int alpha = MIN_SCORE, int beta = MAX_SCORE);
+    L::PieceMove getBestMove(L::Board *lboard, int depth);
 };
+

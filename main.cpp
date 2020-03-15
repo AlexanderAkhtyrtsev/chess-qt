@@ -1,6 +1,5 @@
 #include "gui/mainwindow.h"
 #include <QApplication>
-#include "game/gametimer.h"
 
 
 int main(int argc, char *argv[])

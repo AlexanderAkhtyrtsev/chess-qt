@@ -1,6 +1,6 @@
 #include "board.h"
 #include "piece.h"
-#include <time.h>
+//#include <time.h>
 #include "freepieces.h"
 
 
@@ -48,7 +48,7 @@ Board::Board(){
 
 }
 
-Board::Board(const Board &b)
+Board::Board(const Board &origBoard)
 {
     move                = true; // true - white
     pieces              = new vector<Piece     *>;
@@ -56,7 +56,6 @@ Board::Board(const Board &b)
     pieces_b            = new vector<Piece     *>;
     moves               = new vector<PieceMove *>;
     currentMove         = nullptr;
-       totalIterations = 0;
 
     Piece *p_piece;
     int pieceIndex = 0;
@@ -65,8 +64,11 @@ Board::Board(const Board &b)
         for(int j=0; j<8; j++)
         {
             grids[j][i] = new L::Grid(j, i, this);
-            if ( !initPiecePos[i][j] ) continue;
+            if ( !initPiecePos[i][j] ) {
+                   continue;
+            }
             p_piece = new Piece(static_cast<Piece::Type>(qAbs(initPiecePos[i][j])), initPiecePos[i][j] > 0, grids[j][i], this);
+            grids[j][i]->lpiece = p_piece;
             p_piece->index = pieceIndex++;
             pieces->push_back(p_piece);
             (p_piece->isWhite ? pieces_w : pieces_b)->push_back(p_piece);
@@ -75,13 +77,12 @@ Board::Board(const Board &b)
     King[1] = pieces->at(4);
     King[0] = pieces->at(28);
 
-    for(PieceMove *pm : *b.moves)
+    for(PieceMove *pieceMove : *origBoard.moves)
     {
-        Piece *p = this->pieces->at( quint32(pm->lpiece->index) );
-        Grid *gridTo = this->grids[pm->to->x][pm->to->y];
+        Piece *p = pieces->at( quint32(pieceMove->lpiece->index) );
+        Grid *gridTo = grids[pieceMove->to->x][pieceMove->to->y];
         p->makeMove(gridTo);
     }
-
 }
 
 
@@ -189,7 +190,6 @@ void Board::undoMove()
 
     last->lpiece->moves--;
     moves->erase( moves->end() - 1 );
-    this->posChanged();
     delete last;
     move = !move;
 }
@@ -215,7 +215,7 @@ int Board::getCurrentScore()
     if (gameState == 1) {
         return this->move ? MIN_SCORE : MAX_SCORE;
     } else if (gameState == 2){
-        return 0;
+        return !this->move ? MIN_SCORE : MAX_SCORE;
     }
 
     int total = 0;
@@ -229,129 +229,16 @@ int Board::getCurrentScore()
     return total ;
 }
 
-void Board::posChanged()
-{
-    for(Piece *p: *this->pieces)
-    {
-        p->resetAvailMoves();
-    }
-}
-
-int Board::minimax(int depth, int alpha, int beta)
-{
-
-
-    if (depth == 0 || this->check_game()) {
-        return this->getCurrentScore();
-    }
-
-    vector<PieceMove> moves = this->getAllMoves();
-    int bestMove = this->move ? MIN_SCORE : MAX_SCORE;
-    for(PieceMove pieceMove : moves) {
-        this->totalIterations++; // for iter per sec counting.
-
-        pieceMove.lpiece->makeMove(pieceMove.to);
-        int eval = this->minimax(depth -1, alpha, beta);
-        this->undoMove();
-
-        if (this->move) { // is maximizing player
-            bestMove = qMax (bestMove, eval);
-            alpha = qMax(alpha, eval);
-        }
-        else {
-            beta = qMin(beta, eval);
-            bestMove = qMin (bestMove, eval);
-        }
-        if (beta <= alpha) {
-          //  break;
-        }
-    }
-    return bestMove;
-}
-
 int Board::getPiecePosEval(Piece *piece)
 {
-    const static int pawnPosEval[8][8] = {
-        { 0, 0, 0, 0, 0, 0, 0, 0},
-        {-1,-1,-1,-1,-1,-1,-1,-1},
-        {-1,-1,-1,-1,-1,-1,-1,-1},
-        { 2,-1,-1, 2, 2, 0, 2, 1},
-        { 2, 2, 2, 3, 3, 3, 3, 4},
-        { 2, 2, 2, 3, 3, 4, 4, 4},
-        { 3, 2, 2, 4, 4, 4, 4, 4},
-        { 0, 0, 0, 0, 0, 0, 0, 0}
-    };
+
+#include "game/poseval.h"
 
 
-
-    if (piece->type == L::Piece::Pawn)
-    {
         bool w = piece->isWhite;
-        int p = pawnPosEval[piece->lgrid->x][w ? piece->lgrid->y : 7 - (piece->lgrid->y)];
+        int p = posEval[piece->type] [ (w ? piece->lgrid->y : 7 - (piece->lgrid->y)) * 8 + piece->lgrid->x ];
         return w ? p : -p;
-    }
-    return 0;
-}
 
-PieceMove Board::getBestMove(int depth)
-{
-
-    PieceMove bestMove;
-    vector<PieceMove> eqMoves, moves = this->getAllMoves();
-    this->totalIterations = 0;
-    if (depth > 0) {
-
-        if (!moves.size()) {
-            qDebug() << "no moves :(";
-            return bestMove;
-        }
-
-        int score = this->move ? MIN_SCORE : MAX_SCORE;
-
-
-        for(PieceMove pieceMove : moves)
-        {
-            this->totalIterations++;
-            pieceMove.lpiece->makeMove(pieceMove.to);
-            int m = minimax(depth - 1);
-            this->undoMove();
-
-            if (this->move){
-                if (m > score) {
-                    bestMove = pieceMove;
-                    score = m;
-                    eqMoves.clear();
-                    eqMoves.push_back(pieceMove);
-                } else if (m == score) {
-                    eqMoves.push_back(pieceMove);
-                }
-            } else {
-                if (m < score) {
-                    bestMove = pieceMove;
-                    score = m;
-                    eqMoves.clear();
-                    eqMoves.push_back(pieceMove);
-                } else if (m == score) {
-                    eqMoves.push_back(pieceMove);
-                }
-            }
-        }
-    }
-
-    if (eqMoves.size()) {
-        unsigned int r = (static_cast<unsigned int>(qrand()) % eqMoves.size());
-        bestMove = eqMoves.size() > 1 ? eqMoves[r] : eqMoves[0];
-        qDebug() << "(random from best moves)";
-    }
-
-    else if (bestMove.isNull() && moves.size()) {
-        unsigned int r = (static_cast<unsigned int>(qrand()) % moves.size());
-        bestMove = moves[r];
-
-                qDebug() << "(random from ALL moves)";
-    }
-
-    return bestMove;
 }
 
 
@@ -379,8 +266,7 @@ PieceMove::PieceMove(L::Piece *_piece, L::Grid *_from, L::Grid *_to, L::Piece *r
 {
 }
 
-/**
- * PieceMove::isNull returns lpiece=1, grid_from=2, grid_to=3
+ /* PieceMove::isNull returns lpiece=1, grid_from=2, grid_to=3
  */
 
 int PieceMove::isNull() const
@@ -413,10 +299,18 @@ Board::Board(QWidget* parent) : QGraphicsScene(parent)
     aiThread            = new AIThread(this);
     QObject::connect(aiThread, SIGNAL(finished()), this, SLOT(computerMoveEnd()));
 
+    //options->flipBoard = true;
+    // Board texture
     this->addItem(boardTex);
+
 
     for(int i=0; i<8; i++)
     {
+        // Coords
+        coords[i]       = new QGraphicsTextItem(QString::number(i+1));
+        coords[8+i]     = new QGraphicsTextItem(QString::number(i+1));
+        coords[16+i]    = new QGraphicsTextItem(QString(char(65+i)));
+        coords[24+i]    = new QGraphicsTextItem(QString(char(65+i)));
         for(int j=0; j<8; j++)
         {
             this->grids[i][j] = new Grid(lboard->grids[i][j], this);
@@ -428,30 +322,33 @@ Board::Board(QWidget* parent) : QGraphicsScene(parent)
     free_pieces[1] = new FreePieces(this); // white
 
     Piece *p_piece;
-    for(quint32 i=0; i<lboard->pieces->size(); i++){
-             p_piece = new Piece(lboard->pieces->at(i), this);
-             p_piece->grid = Grid::get(p_piece->lpiece->lgrid, this);
-             pieces->push_back(p_piece);
-             (p_piece->lpiece->isWhite ? pieces_w : pieces_b)->push_back(p_piece);
-     }
+    for(quint32 i=0; i<lboard->pieces->size(); i++) {
+        p_piece = new Piece(lboard->pieces->at(i), this);
+        p_piece->grid = Grid::get(p_piece->lpiece->lgrid, this);
+        pieces->push_back(p_piece);
+        (p_piece->lpiece->isWhite ? pieces_w : pieces_b)->push_back(p_piece);
+
+        this->addItem(pieces->at(i));
+
+        coords[i]->setDefaultTextColor(Qt::black);
+        coords[i]->setOpacity(0.6);
+        this->addItem(coords[i]);
+    }
 
     King[1] = pieces->at(4);
     King[0] = pieces->at(28);
 
-     for(unsigned i=0; i<pieces->size(); i++)
-     {
-         this->addItem(pieces->at(i));
-     }
-     //window->timer[1]->start();
-     /*
-     for(auto p : *pieces)
-     {
-         if (p->lpiece->type > 2){
-             p->lpiece->remove();
-             p->remove();
-         }
-     }
-     //*/
+     // timers
+     timer[0] = new GameTimer(this);
+     timer[1] = new GameTimer(this);
+
+     timer[0]->setAlignment(Qt::AlignRight);
+     timer[1]->setAlignment(Qt::AlignRight);
+
+     pw_timer[0] = this->addWidget(timer[0]);
+     pw_timer[1] = this->addWidget(timer[1]);
+
+     this->newGame();
 }
 
 Board::~Board()
@@ -477,19 +374,27 @@ Board::~Board()
     delete lboard;
     delete boardTex;
     delete chess_tiles;
+    delete timer[0];
+    delete timer[1];
 }
 
 // TODO: check this one
 void Board::newGame()
 {
-    Piece *p;
-    if (lboard->currentMove && (p = Piece::get(lboard->currentMove->lpiece, this)) && p->anim->state() == QAbstractAnimation::Running)
-    p->anim->stop();
-    if(aiThread->isRunning()) {
-        aiThread->terminate();
+    while (aiThread->isRunning()) {
+        aiThread->requestInterruption();
     }
-    window->timer[0]->reset();
-    window->timer[1]->reset()->start();
+
+    Piece *p;
+    if (lboard->currentMove && (p = Piece::get(lboard->currentMove->lpiece, this)) &&
+            p->anim->state() == QAbstractAnimation::Running)
+    {
+        p->anim->stop();
+    }
+
+
+    this->timer[0]->reset();
+    this->timer[1]->reset()->start();
 
     selected = nullptr;
     lboard->move  = true; // true = white
@@ -511,18 +416,27 @@ void Board::newGame()
         for(int y=0; y<8; y++)
         {
             if ( !L::Board::initPiecePos[x][y] ) continue;
+
             p_piece = pieces->at(f_count);
             p_piece->lpiece->inGame = true;
             p_piece->placeTo(grids[y][x]);
             p_piece->lpiece->clearMoves();
-            if (p_piece->lpiece->type == L::Piece::Queen && qAbs( L::Board::initPiecePos[x][y] ) == L::Piece::Pawn ){
+            if (p_piece->lpiece->type == L::Piece::Queen &&
+                    qAbs( L::Board::initPiecePos[x][y] ) == L::Piece::Pawn )
+            {
                 p_piece->lpiece->type = L::Piece::Pawn;
             }
             f_count ++;
         }
     }
-    lboard->posChanged();
-    ResetHighligtedGrids();
+    resetHighligtedGrids();
+
+    if (options->player[1] != Options::Human)
+    {
+        this->computerMove();
+        this->reverse(!reverse());
+    }
+
 }
 
 void Board::doAutoMove()
@@ -536,28 +450,30 @@ void Board::pieceMoveCompleted()
         this->endGame();
         return;
     }
-    if (!lboard->move) {
-        QTimer::singleShot(500, this, &Board::computerMove);
-    }
+    if (options->player[lboard->move] != Options::Human) {
+        computerMove();
+   }
 }
 
 
 void Board::undoMove()
 {
-    if (!lboard->moves->size()) return;
-
-    if (aiThread->isRunning())
-    {
-        aiThread->terminate();
+    if (!lboard->moves->size()) {
+        if ( options->player[lboard->move] != Options::Human ){
+            computerMove();
+        }
         return;
     }
 
+    if (aiThread->isRunning()) {
+        aiThread->requestInterruption();
+    }
 
-    if (m_endGame)
-    {
+
+    if (m_endGame) {
         piecesSelectable = true;
         m_endGame = false;
-        this->window->timer[lboard->move]->start();
+        this->timer[lboard->move]->start();
     }
 
     L::PieceMove *last = lboard->moves->back();
@@ -589,8 +505,8 @@ void Board::undoMove()
             }
         }
 
-        window->timer[lboard->move]->stop();
-        window->timer[!lboard->move]->start();
+        this->timer[lboard->move]->stop();
+        this->timer[!lboard->move]->start();
 
     } else {
 
@@ -621,13 +537,19 @@ void Board::undoMove()
         }
         piece->placeTo(Grid::get(last->from, this));
 
-        window->timer[lboard->move]->stop()->setTime(!timerValue[lboard->move].empty() ? timerValue[lboard->move].top() : 0);
         timerValue[lboard->move].pop();
-        window->timer[!lboard->move]->start();
+        this->timer[lboard->move]->stop()->setTime(!timerValue[lboard->move].empty() ? timerValue[lboard->move].top() : 0);
+        this->timer[!lboard->move]->start();
     }
 
     lboard->undoMove();
-    ResetHighligtedGrids();
+    resetHighligtedGrids();
+
+    if ( options->player[lboard->move] != Options::Human )
+    {
+        this->undoMove();
+    }
+
 }
 
 void Board::computerMove()
@@ -650,7 +572,7 @@ void Board::computerMoveEnd()
 }
 
 // TODO: optimize
-Board *Board::ResetHighligtedGrids()
+Board *Board::resetHighligtedGrids()
 {
     for(int i=0; i<8; i++)
     {
@@ -674,7 +596,7 @@ bool Board::reverse() const
 bool Board::reverse(bool reverse)
 {
     m_reverse = reverse;
-    ReplaceElements();
+    replaceElements();
     free_pieces[0]->update();
     free_pieces[1]->update();
     return m_reverse;
@@ -684,7 +606,7 @@ void Board::endGame()
 {
     piecesSelectable = false;
     m_endGame = true;
-    this->window->timer[lboard->move]->stop();
+    this->timer[lboard->move]->stop();
     for(int i=-1; i<2; i++)
     {
         for(int j=-1; j<2; j++)
@@ -712,12 +634,11 @@ void Board::endGame()
 }
 
 
-void Board::ReplaceElements()
+void Board::replaceElements()
 {
-    for(int i=0; i<8; i++)
-    {
-        for(int j=0; j<8; j++)
-        {
+    int iter = 0;
+    for(int i=0; i<8; i++) {
+        for(int j=0; j<8; j++) {
             grids[i][j]->setPos(grid_size * i, grid_size * ((m_reverse ? (j+1) : 8-j)) );
         }
     }
@@ -725,6 +646,32 @@ void Board::ReplaceElements()
     {
         Piece* f = pieces->at(i);
         if ( f->lpiece->inGame ) f->placeTo(f->grid);
+
+        QFont font("Arial");
+        QFontMetrics fm(font);
+        font.setPixelSize(grid_size / 6);
+
+        int offsetY = (grid_size/2) - coords[iter]->boundingRect().height()/2;
+        int offsetX = (grid_size/2) - coords[iter]->boundingRect().width()/2;
+
+        if (iter > 23) {
+            // bottom
+            coords[iter]->setPos((iter%8) * grid_size + offsetX, 9*grid_size);
+        } else if (iter > 15) {
+            // top
+             coords[iter]->setPos((iter%8) * grid_size + offsetX, grid_size - fm.height()*0.7);
+        } else if (iter > 7) {
+            // left
+            coords[iter]->setPos(-coords[iter]->boundingRect().width(), (m_reverse ? (iter%8)+1 : 8-(iter%8)) * grid_size + offsetY);
+        } else {
+            // right
+            coords[iter]->setPos(grid_size*8, (m_reverse ? iter+1 : 8-iter)*grid_size + offsetY);
+        }
+
+        coords[iter]->setFont(font);
+
+        iter ++;
+
     }
 
     free_pieces[0]->update();
@@ -739,6 +686,12 @@ void Board::ReplaceElements()
     } else {
         boardTex->resetTransform();
     }
+
+
+    // timers
+    qreal xpos = this->sceneRect().width() - pw_timer[0]->rect().width();
+    pw_timer[1]->setPos(xpos, this->reverse() ? 0 : this->sceneRect().height() - pw_timer[1]->rect().height());
+    pw_timer[0]->setPos(xpos, this->reverse() ? this->sceneRect().height() - pw_timer[0]->rect().height() : 0);
 }
 
 
@@ -750,19 +703,142 @@ void Board::mousePressEvent(QGraphicsSceneMouseEvent *event)
 AIThread::AIThread(Board *_board)
 {
     board = _board;
+
 }
 
 void AIThread::run()
 {
     qsrand(static_cast<quint32>(time(nullptr)));
+
+    totalIterations = 0;
+
     QElapsedTimer timer;
     timer.start();
-    L::Board *lboard = board->lboard;
-                    //new L::Board(*board->lboard);
-    bestMove = lboard->getBestMove(board->window->sel1val());
+    L::Board *lboard = new L::Board(*board->lboard);//board->lboard;
+
+    Options::PlayerType playerType = board->options->player[board->lboard->move];
+    int level = playerType == 1 ? 1 : playerType == 2 ? 3 : 4;
+
+
+    L::PieceMove b_bestMove = getBestMove(lboard, level);
+    if (b_bestMove.isNull()) return;
+    bestMove = L::PieceMove(board->lboard->pieces->at( b_bestMove.lpiece->index ),
+                            board->lboard->grid(b_bestMove.from->x, b_bestMove.from->y),
+                            board->lboard->grid(b_bestMove.to->x, b_bestMove.to->y),
+                             b_bestMove.removed);
+
     qreal elapsed = qreal(timer.elapsed()) / 1000;
+    qDebug() << totalIterations << "iter. / " << elapsed << " s = " << (qreal(totalIterations)/(elapsed)) << " i/s";
+    delete lboard;
 
-
-    qDebug() << lboard->totalIterations << "iter. /" << elapsed << "s =" << (qreal(lboard->totalIterations)/(elapsed)) << "i/s";
-
+    //QThread::sleep(qrand()%5);
 }
+
+
+
+int AIThread::minimax(L::Board *lboard, int depth, int alpha, int beta)
+{
+    int bestMove = lboard->move ? MIN_SCORE : MAX_SCORE;
+
+    if (isInterruptionRequested()) {
+        return bestMove;
+    }
+
+    if (depth == 0 || lboard->check_game()) {
+        return lboard->getCurrentScore();
+    }
+
+    vector<L::PieceMove> moves = lboard->getAllMoves();
+    for(L::PieceMove pieceMove : moves) {
+        totalIterations++; // for iter per sec counting.
+
+        pieceMove.lpiece->makeMove(pieceMove.to);
+        int eval = this->minimax(lboard, depth -1, alpha, beta);
+        lboard->undoMove();
+
+        if (lboard->move) { // is maximizing player
+            bestMove = qMax (bestMove, eval);
+            alpha = qMax(alpha, eval);
+        }
+        else {
+            beta = qMin(beta, eval);
+            bestMove = qMin (bestMove, eval);
+        }
+        if (beta <= alpha) {
+            break;
+        }
+    }
+    return bestMove;
+}
+
+
+L::PieceMove AIThread::getBestMove(L::Board *lboard, int depth)
+{
+    L::PieceMove bestMove;
+    if (this->isInterruptionRequested())
+    {
+        qDebug() << "INT";
+        return bestMove;
+    }
+
+    vector<L::PieceMove> eqMoves, moves = lboard->getAllMoves();
+    totalIterations = 0;
+    if (depth > 0) {
+
+        if (!moves.size()) {
+            qDebug() << "no moves :(";
+            return bestMove;
+        }
+
+        int score = lboard->move ? MIN_SCORE : MAX_SCORE;
+
+
+        for(L::PieceMove pieceMove : moves)
+        {
+            totalIterations++;
+            pieceMove.lpiece->makeMove(pieceMove.to);
+            int m = minimax(lboard, depth - 1);
+            lboard->undoMove();
+
+            if (isInterruptionRequested()) {
+                return bestMove;
+            }
+
+            if (lboard->move){
+                if (m > score) {
+                    bestMove = pieceMove;
+                    score = m;
+                    eqMoves.clear();
+                    eqMoves.push_back(pieceMove);
+                } else if (m == score) {
+                    eqMoves.push_back(pieceMove);
+                }
+            } else {
+                if (m < score) {
+                    bestMove = pieceMove;
+                    score = m;
+                    eqMoves.clear();
+                    eqMoves.push_back(pieceMove);
+                } else if (m == score) {
+                    eqMoves.push_back(pieceMove);
+                }
+            }
+        }
+    }
+
+    if (eqMoves.size()) {
+        unsigned int r = (static_cast<unsigned int>(qrand()) % eqMoves.size());
+        bestMove = eqMoves.size() > 1 ? eqMoves[r] : eqMoves[0];
+        qDebug() << "(random from" << eqMoves.size() << "best moves)";
+    }
+
+    else if (bestMove.isNull() && moves.size()) {
+        unsigned int r = (static_cast<unsigned int>(qrand()) % moves.size());
+        bestMove = moves[r];
+
+        qDebug() << "(random from ALL moves)";
+    }
+
+    return bestMove;
+}
+

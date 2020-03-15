@@ -11,8 +11,6 @@ Piece::Piece(Piece::Type pieceType, bool white, Grid *initGrid, Board *l_board)
     type = pieceType;
     inGame = true;
     moves = 0;
-    m_availMoves_def = false;
-    m_availMovesToAttack_def = false;
 }
 
 Piece::~Piece()
@@ -30,9 +28,8 @@ bool Piece::isMoveValid(Grid *g)
     lgrid = g;
     g->lpiece = this;
 
-    lboard->posChanged(); // TODO: OPTIMIZE
     if ( lboard->is_check(isWhite) ) ret = false;
-    lboard->posChanged();
+
     lgrid = gprev;
     g->lpiece = prev;
     lgrid->lpiece = this;
@@ -66,22 +63,15 @@ void Piece::clearMoves()
     moves = 0;
 }
 
-void Piece::resetAvailMoves()
-{
-    m_availMoves_def = false;
-    m_availMovesToAttack_def = false;
-}
 
 // TODO: check
 bool Piece::isProtected()
 {
-    inGame = false;
-    lgrid->lpiece = nullptr;
-    lboard->posChanged();
-    bool ret = lgrid->is_attacked(isWhite);
-    lgrid->lpiece = this;
-    inGame = true;
-    lboard->posChanged();
+    this->inGame = false;
+    this->lgrid->lpiece = nullptr;
+    bool ret = this->lgrid->is_attacked(isWhite);
+    this->lgrid->lpiece = this;
+    this->inGame = true;
     return ret;
 }
 
@@ -89,7 +79,7 @@ bool Piece::isProtected()
 void Piece::makeMove(L::Grid *gridTo)
 {
 
-    if( lboard->move != isWhite && !gridTo->empty() && gridTo->lpiece->isWhite == isWhite ){
+    if( lboard->move != isWhite || (!gridTo->empty() && gridTo->lpiece->isWhite == isWhite) ){
         qDebug() << "makeMove ERROR: wrong move";
         return;
     }
@@ -98,8 +88,9 @@ void Piece::makeMove(L::Grid *gridTo)
     assert ( lboard->currentMove->isNull() != 1);
     assert ( lboard->currentMove->isNull() != 2);
     assert ( lboard->currentMove->isNull() != 3);
-    // Castling
 
+
+    // Castling
     if (type == King)
     {
         if (lgrid->offset(2, 0) == lboard->currentMove->to)
@@ -151,7 +142,6 @@ void Piece::makeMove(L::Grid *gridTo)
         type = Queen;
         lboard->currentMove->extra = true;
     }
-    lboard->posChanged();
     lboard->move = !lboard->move;
     lboard->moves->push_back(lboard->currentMove);
     this->moves++;
@@ -167,8 +157,6 @@ vector<Grid *> Piece::getGrids(bool getAttacked)
 {
     assert(inGame);
     vector<Grid *> moves;
-    if (getAttacked && m_availMovesToAttack_def) return m_availMovesToAttack;
-    else if(!getAttacked && m_availMoves_def) return m_availMoves;
 
     if( pieceBehavior[type].extra )
     {
@@ -407,14 +395,6 @@ vector<Grid *> Piece::getGrids(bool getAttacked)
             }
         }
     }
-    if (getAttacked)
-    {
-        m_availMovesToAttack_def = true;
-        m_availMovesToAttack = moves;
-    } else {
-        m_availMoves_def = true;
-        m_availMoves = moves;
-    }
     return moves;
 }
 
@@ -446,11 +426,16 @@ void Piece::placeTo(Grid *grid_to, bool show)
 
 void Piece::makeMove(Grid *gridTo)
 {
+
+    if( board->lboard->move != lpiece->isWhite ||
+            (!gridTo->lgrid->empty() && gridTo->lgrid->lpiece->isWhite == lpiece->isWhite) ){
+        qDebug() << "makeMove ERROR: wrong move";
+        return;
+    }
+
     if ( board->options->flipBoard ) {
         board->reverse(board->lboard->move);
     }
-
-
 
     this->lpiece->makeMove(gridTo->lgrid);
 
@@ -481,11 +466,10 @@ void Piece::makeMove(Grid *gridTo)
         }
 
     }
-    board->ResetHighligtedGrids();
-    board->timerValue[!board->lboard->move].push(board->window->timer[!board->lboard->move]->time());
-    board->window->timer[!board->lboard->move]->stop();
-    board->window->timer[board->lboard->move]->start();
-
+    board->resetHighligtedGrids();
+    board->timerValue[!board->lboard->move].push(board->timer[!board->lboard->move]->time());
+    board->timer[!board->lboard->move]->stop();
+    board->timer[board->lboard->move]->start();
 }
 
 void Piece::moveEnd()
@@ -513,10 +497,10 @@ void Piece::animateTo(Grid *gridTo, bool moveEnd)
     if (moveEnd){
         QObject::connect(anim, SIGNAL(finished()), SLOT(moveEnd()));
     }
-    anim->setDuration( qMax(400, qMax(qAbs(grid->lgrid->x - gridTo->lgrid->x), qAbs(grid->lgrid->y - gridTo->lgrid->y)) * 100) );
+    anim->setDuration( qMax(600, qMax(qAbs(grid->lgrid->x - gridTo->lgrid->x), qAbs(grid->lgrid->y - gridTo->lgrid->y)) * 200) );
     anim->setStartValue(this->grid->pos());
     anim->setEndValue(gridTo->pos());
-    anim->setEasingCurve(QEasingCurve::InQuad);
+    anim->setEasingCurve(QEasingCurve::InOutCubic);
     anim->start();
 }
 
@@ -524,7 +508,7 @@ void Piece::select()
 {
     assert( lpiece->inGame && board->lboard->move == lpiece->isWhite && board->piecesSelectable );
 
-    board->ResetHighligtedGrids();
+    board->resetHighligtedGrids();
     vector<L::Grid *> availMoves = lpiece->getGrids();
     board->selected = this;
     grid->Highlight();
@@ -539,7 +523,6 @@ void Piece::select()
 
 void Piece::remove()
 {
-    // l_remove
     board->free_pieces[lpiece->isWhite]->addPiece(this);
 }
 

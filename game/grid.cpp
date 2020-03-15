@@ -165,6 +165,6 @@ void Grid::paint(QPainter *painter, const QStyleOptionGraphicsItem*, QWidget*)
 void Grid::mousePressEvent(QGraphicsSceneMouseEvent *pe)
 {
     if( board->selected && light && lgrid->lpiece != board->selected->lpiece ) board->selected->makeMove(this);
-    else if( lgrid->empty() && board->selected)  board->ResetHighligtedGrids()->selected = nullptr;
+    else if( lgrid->empty() && board->selected)  board->resetHighligtedGrids()->selected = nullptr;
     QGraphicsItem::mousePressEvent(pe);
 }
