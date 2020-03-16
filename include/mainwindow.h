@@ -1,8 +1,8 @@
 #pragma once
 #include <QtWidgets>
-#include "game/board.h"
+#include "board.h"
 #include "graphicsview.h"
-#include "game/gametimer.h"
+#include "gametimer.h"
 
 class GraphicsView;
 class GameTimer;

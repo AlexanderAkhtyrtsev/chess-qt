@@ -232,7 +232,7 @@ int Board::getCurrentScore()
 int Board::getPiecePosEval(Piece *piece)
 {
 
-#include "game/poseval.h"
+#include "poseval.h"
 
 
         bool w = piece->isWhite;
@@ -459,9 +459,6 @@ void Board::pieceMoveCompleted()
 void Board::undoMove()
 {
     if (!lboard->moves->size()) {
-        if ( options->player[lboard->move] != Options::Human ){
-            computerMove();
-        }
         return;
     }
 
@@ -537,8 +534,8 @@ void Board::undoMove()
         }
         piece->placeTo(Grid::get(last->from, this));
 
-        timerValue[lboard->move].pop();
         this->timer[lboard->move]->stop()->setTime(!timerValue[lboard->move].empty() ? timerValue[lboard->move].top() : 0);
+        timerValue[lboard->move].pop();
         this->timer[!lboard->move]->start();
     }
 
@@ -547,7 +544,11 @@ void Board::undoMove()
 
     if ( options->player[lboard->move] != Options::Human )
     {
-        this->undoMove();
+        if (lboard->moves->size()) {
+            this->undoMove();
+        } else {
+            computerMove();
+        }
     }
 
 }

@@ -1,5 +1,5 @@
 #include "mainwindow.h"
-#include "../game/grid.h"
+#include "grid.h"
 
 void MainWindow::test()
 {

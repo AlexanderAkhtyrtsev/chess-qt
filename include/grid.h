@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gui/mainwindow.h"
+#include "mainwindow.h"
 #include "board.h"
 #include "piece.h"
 

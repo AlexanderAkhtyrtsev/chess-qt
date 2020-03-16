@@ -15,27 +15,9 @@ TEMPLATE = app
 RESOURCES += \
     res.qrc
 
-HEADERS += \
-    game/board.h \
-    game/grid.h \
-    gui/graphicsview.h \
-    gui/mainwindow.h \
-    game/piece.h \
-    game/freepieces.h \
-    game/gametimer.h \
-    game/poseval.h \
-    gui/settingswnd.h
-
-SOURCES += \
-    game/board.cpp \
-    game/grid.cpp \
-    gui/graphicsview.cpp \
-    gui/mainwindow.cpp \
-    gui/settingswnd.cpp \
-    main.cpp \
-    game/piece.cpp \
-    game/freepieces.cpp \
-    game/gametimer.cpp
+INCLUDEPATH += $$PWD/include
+HEADERS += $$PWD/include/*
+SOURCES += $$PWD/src/*
 
 DISTFILES += \
     android/AndroidManifest.xml \
