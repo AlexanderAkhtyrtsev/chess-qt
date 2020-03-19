@@ -437,6 +437,7 @@ void Piece::makeMove(Grid *gridTo)
         board->reverse(board->lboard->move);
     }
 
+    board->resetHighligtedGrids();
     this->lpiece->makeMove(gridTo->lgrid);
 
     assert ( !lpiece->lboard->currentMove->isNull() );
@@ -466,10 +467,12 @@ void Piece::makeMove(Grid *gridTo)
         }
 
     }
-    board->resetHighligtedGrids();
+
+
     board->timerValue[!board->lboard->move].push(board->timer[!board->lboard->move]->time());
     board->timer[!board->lboard->move]->stop();
     board->timer[board->lboard->move]->start();
+
 }
 
 void Piece::moveEnd()
@@ -482,9 +485,10 @@ void Piece::moveEnd()
 
     this->placeTo(Grid::get(lpiece->lboard->currentMove->to, board));
 
-
+    board->resetHighligtedGrids();
     Grid::get(lpiece->lboard->currentMove->from, board)->Highlight(2);
     Grid::get(lpiece->lboard->currentMove->to, board)->Highlight(2);
+
     board->piecesSelectable = true;
     this->setZValue(1);
     anim->disconnect();

@@ -348,8 +348,8 @@ Board::Board(QWidget* parent) : QGraphicsScene(parent)
      pw_timer[0] = this->addWidget(timer[0]);
      pw_timer[1] = this->addWidget(timer[1]);
 
-     this->options->player[0] = Options::AI_Stupid;
-     this->options->player[1] = Options::AI_Hard;
+     this->options->player[1] = Options::Human;
+     this->options->player[0] = Options::AI_Medium;
      this->newGame();
 }
 
@@ -546,11 +546,12 @@ void Board::undoMove()
     resetHighligtedGrids();
 
     // If playing against computer
-    if ( options->player[lboard->move] != Options::Human ) {
-        // To avoid endless recursion
-        if (options->player[!lboard->move] != Options::Human && lboard->moves->size()) {
+    if ( options->player[lboard->move] != Options::Human  ) {
+
+        if (options->player[!lboard->move] == Options::Human && lboard->moves->size()) {
             this->undoMove();
-        } else {
+        }
+        if (options->player[lboard->move] != Options::Human) {
             this->computerMove();
         }
     }
