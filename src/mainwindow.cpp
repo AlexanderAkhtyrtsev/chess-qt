@@ -33,7 +33,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     vbl->addWidget(view);
 
-     vbl->addWidget(menuBar);
+    // vbl->addWidget(menuBar);
     this->setLayout(vbl);
 
 
@@ -80,6 +80,6 @@ void MainWindow::keyPressEvent(QKeyEvent *pe)
 Options::Options()
 {
     flipBoard = false;
-    player[1] = AI_Hard;
+    player[1] = Human;
     player[0] = Human;
 }

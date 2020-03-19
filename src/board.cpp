@@ -212,6 +212,7 @@ int Board::getCurrentScore()
     const static int points[] = {0,    10000,    1000,    500,     510,  800,   100};
 
     int gameState = this->check_game();
+
     if (gameState == 1) {
         return this->move ? MIN_SCORE : MAX_SCORE;
     } else if (gameState == 2){
@@ -233,7 +234,6 @@ int Board::getPiecePosEval(Piece *piece)
 {
 
 #include "poseval.h"
-
 
         bool w = piece->isWhite;
         int p = posEval[piece->type] [ (w ? piece->lgrid->y : 7 - (piece->lgrid->y)) * 8 + piece->lgrid->x ];
@@ -348,6 +348,8 @@ Board::Board(QWidget* parent) : QGraphicsScene(parent)
      pw_timer[0] = this->addWidget(timer[0]);
      pw_timer[1] = this->addWidget(timer[1]);
 
+     this->options->player[0] = Options::AI_Stupid;
+     this->options->player[1] = Options::AI_Hard;
      this->newGame();
 }
 
@@ -431,12 +433,13 @@ void Board::newGame()
     }
     resetHighligtedGrids();
 
-    if (options->player[1] != Options::Human)
-    {
-        this->computerMove();
+    if (options->player[0] == Options::Human){
         this->reverse(!reverse());
     }
 
+    if (options->player[1] != Options::Human) {
+        this->computerMove();
+    }
 }
 
 void Board::doAutoMove()
@@ -542,15 +545,15 @@ void Board::undoMove()
     lboard->undoMove();
     resetHighligtedGrids();
 
-    if ( options->player[lboard->move] != Options::Human )
-    {
-        if (lboard->moves->size()) {
+    // If playing against computer
+    if ( options->player[lboard->move] != Options::Human ) {
+        // To avoid endless recursion
+        if (options->player[!lboard->move] != Options::Human && lboard->moves->size()) {
             this->undoMove();
         } else {
-            computerMove();
+            this->computerMove();
         }
     }
-
 }
 
 void Board::computerMove()
@@ -718,7 +721,7 @@ void AIThread::run()
     L::Board *lboard = new L::Board(*board->lboard);//board->lboard;
 
     Options::PlayerType playerType = board->options->player[board->lboard->move];
-    int level = playerType == 1 ? 1 : playerType == 2 ? 3 : 4;
+    int level = playerType == 1 ? 2 : playerType == 2 ? 3 : 4;
 
 
     L::PieceMove b_bestMove = getBestMove(lboard, level);
