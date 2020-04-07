@@ -84,9 +84,11 @@ Grid::~Grid()
 
 }
 
-void Grid::Highlight(int lightType)
+void Grid::highlight(int lightType)
 {
     if (light == lightType) return; // dont change ath cause no needed
+
+    board->highlightedGrids.push(this);
     light = lightType;
     update(0, 0, board->grid_size,board->grid_size);
 }
@@ -99,7 +101,7 @@ Grid::operator L::Grid() const
 Grid *Grid::offset(int dx, int dy)
 {
     int xn = lgrid->x+dx,
-            yn = lgrid->y+dy;
+        yn = lgrid->y+dy;
     if ( xn < 0 || xn > 7 || yn < 0 || yn > 7) {
         return nullptr;
     }
@@ -122,16 +124,6 @@ QRectF Grid::boundingRect() const
 void Grid::paint(QPainter *painter, const QStyleOptionGraphicsItem*, QWidget*)
 {
 
-    /*
-    QBrush brush(QColor(is_white ? QColor(200, 200, 200) : QColor(120, 120, 120)));
-    painter->save();
-        painter->setBrush(brush);
-        painter->setPen(QPen(Qt::NoPen)); // no border
-        painter->drawRect(QRect(0, 0, board->grid_size, board->grid_size));
-        painter->setRenderHint(QPainter::Antialiasing, true);
-    painter->restore();
-*/
-
     if (light)
     {
         painter->save();
@@ -152,6 +144,7 @@ void Grid::paint(QPainter *painter, const QStyleOptionGraphicsItem*, QWidget*)
             color = Qt::darkBlue;
             break;
         };
+
         color.setAlpha(80);
         QBrush brush2(color);
         painter->setPen(QPen(brush2, p, Qt::SolidLine));
@@ -164,7 +157,12 @@ void Grid::paint(QPainter *painter, const QStyleOptionGraphicsItem*, QWidget*)
 
 void Grid::mousePressEvent(QGraphicsSceneMouseEvent *pe)
 {
-    if( board->selected && light && lgrid->lpiece != board->selected->lpiece ) board->selected->makeMove(this);
-    else if( lgrid->empty() && board->selected)  board->resetHighligtedGrids()->selected = nullptr;
+    if( board->selected && light && lgrid->lpiece != board->selected->lpiece ) {
+        board->selected->makeMove(this);
+
+    } else if( lgrid->empty() && board->selected) {
+        board->resetHighligtedGrids()->selected = nullptr;
+    }
+
     QGraphicsItem::mousePressEvent(pe);
 }

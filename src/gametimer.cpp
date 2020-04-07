@@ -75,7 +75,7 @@ void GameTimer::showTime()
 
     QString str = QString::number(passed_m) + ":" + (passed_s < 10 ? "0" : "" ) + QString::number(passed_s);
     this->setText(str);
-    this->setStyleSheet(timer->isActive() ? "color: black" :"color: silver");
+    this->setStyleSheet(timer->isActive() ? "color: black" : "color: silver");
 }
 QSize GameTimer::sizeHint() const
 {

@@ -23,7 +23,6 @@ public:
     static Piece *get(L::Piece *lp, Board *);
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-
 public slots:
     void moveEnd();
 protected:

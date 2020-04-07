@@ -28,7 +28,7 @@ bool Piece::isMoveValid(Grid *g)
     lgrid = g;
     g->lpiece = this;
 
-    if ( lboard->is_check(isWhite) ) ret = false;
+    if ( lboard->isCheck(isWhite) ) ret = false;
 
     lgrid = gprev;
     g->lpiece = prev;
@@ -67,12 +67,7 @@ void Piece::clearMoves()
 // TODO: check
 bool Piece::isProtected()
 {
-    this->inGame = false;
-    this->lgrid->lpiece = nullptr;
-    bool ret = this->lgrid->is_attacked(isWhite);
-    this->lgrid->lpiece = this;
-    this->inGame = true;
-    return ret;
+    return this->lgrid->is_attacked(isWhite);
 }
 
 
@@ -85,9 +80,6 @@ void Piece::makeMove(L::Grid *gridTo)
     }
 
     lboard->currentMove = new PieceMove(this, lgrid, gridTo);
-    assert ( lboard->currentMove->isNull() != 1);
-    assert ( lboard->currentMove->isNull() != 2);
-    assert ( lboard->currentMove->isNull() != 3);
 
 
     // Castling
@@ -240,7 +232,7 @@ vector<Grid *> Piece::getGrids(bool getAttacked)
             }
 
              // Castling
-            if ( !getAttacked && !moved() && !lboard->is_check(isWhite) )
+            if ( !getAttacked && !moved() && !lboard->isCheck(isWhite) )
             {
                 Piece *Rook;
                 Grid *grd;
@@ -469,7 +461,7 @@ void Piece::makeMove(Grid *gridTo)
     }
 
 
-    board->timerValue[!board->lboard->move].push(board->timer[!board->lboard->move]->time());
+    board->timersValue[!board->lboard->move].push(board->timer[!board->lboard->move]->time());
     board->timer[!board->lboard->move]->stop();
     board->timer[board->lboard->move]->start();
 
@@ -486,8 +478,8 @@ void Piece::moveEnd()
     this->placeTo(Grid::get(lpiece->lboard->currentMove->to, board));
 
     board->resetHighligtedGrids();
-    Grid::get(lpiece->lboard->currentMove->from, board)->Highlight(2);
-    Grid::get(lpiece->lboard->currentMove->to, board)->Highlight(2);
+    Grid::get(lpiece->lboard->currentMove->from, board)->highlight(2);
+    Grid::get(lpiece->lboard->currentMove->to, board)->highlight(2);
 
     board->piecesSelectable = true;
     this->setZValue(1);
@@ -515,12 +507,14 @@ void Piece::select()
     board->resetHighligtedGrids();
     vector<L::Grid *> availMoves = lpiece->getGrids();
     board->selected = this;
-    grid->Highlight();
+
+    grid->highlight();
+
     if ( availMoves.size() )
     {
         for(unsigned i=0; i<availMoves.size(); i++)
         {
-            Grid::get(availMoves[i], board)->Highlight();
+            Grid::get(availMoves[i], board)->highlight();
         }
     }
 }

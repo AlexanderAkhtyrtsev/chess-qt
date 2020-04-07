@@ -42,7 +42,7 @@ public:
     ~Board();
     Grid *grid(int x, int y) const;
     Piece *piece(int index) const;
-    bool is_check(bool w);
+    bool isCheck(bool) const;
     int check_game();
     void undoMove();
 
@@ -82,12 +82,15 @@ class Board : public QGraphicsScene
     bool m_endGame;
     QGraphicsProxyWidget *pw_timer[2];
     QGraphicsTextItem *coords[32];
+
 public:
     L::Board  *lboard;
     AIThread *aiThread;
     GameTimer *timer[2];
-
     QSize size;
+
+    std::stack<Grid *> highlightedGrids;
+
     Board(QWidget* = nullptr);
     ~Board();
 
@@ -97,13 +100,13 @@ public:
     bool reverse() const; // getter
     bool reverse(bool reverse);     // setter
 
+    QPixmap *chess_tiles;
 
     int grid_size;
     bool piecesSelectable;
     Grid* grids[8][8];
-    QPixmap* chess_tiles;
     vector<Piece *> *pieces;
-    stack<quint32> timerValue[2];
+    stack<quint32> timersValue[2];
     vector<Piece *> *pieces_w, *pieces_b;
     Piece *selected, *King[2];
     FreePieces *free_pieces[2];

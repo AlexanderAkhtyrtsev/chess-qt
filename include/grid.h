@@ -15,7 +15,7 @@ public:
     Board *board;
     Grid(L::Grid *lgrid, Board* = nullptr);
     ~Grid();
-    void Highlight(int = 1);
+    void highlight(int = 1);
     operator L::Grid () const;
     Grid *offset(int dx, int dy);
     static Grid *get(L::Grid *, Board *board);

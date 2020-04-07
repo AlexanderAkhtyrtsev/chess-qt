@@ -21,7 +21,7 @@ const int L::Board::initPiecePos[8][8] = {
 
 namespace L {
 
-Board::Board(){
+Board::Board() {
     move                = true; // true - white
     pieces              = new vector<Piece     *>;
     pieces_w            = new vector<Piece     *>;
@@ -45,7 +45,6 @@ Board::Board(){
     }
     King[1] = pieces->at(4);
     King[0] = pieces->at(28);
-
 }
 
 Board::Board(const Board &origBoard)
@@ -121,13 +120,16 @@ Piece *Board::piece(int index) const
 
 /**
  * returns 1 if check mate, 2 if draw, 0 if in game
- */
+ *
+*/
 
 int Board::check_game()
 {
     int game_over = 2; // 0 - the game isn't over; 1 - check mate; 2 - draw;
     vector<Piece *> *pieces = move ? pieces_w : pieces_b;
     Piece *temp;
+
+    // is "i" unsigned???
     for(unsigned i = 0; i < pieces->size(); i++)
     {
         temp = pieces->at(i);
@@ -140,7 +142,7 @@ int Board::check_game()
     if (game_over) {
         // the game is already over.
         // loser's move (that isn't possible)
-        if( this->is_check(this->move) ){
+        if( this->isCheck(this->move) ){
             game_over = 1;
         }
     }
@@ -151,7 +153,6 @@ void Board::undoMove()
 {
     if (!moves->size()) return;
     PieceMove *last = moves->back();
-
 
     if (last->extra)
     {
@@ -199,7 +200,7 @@ void Board::undoMove()
 /**
  *  Returns true if check
  */
-bool Board::is_check(bool w)
+bool Board::isCheck(bool w) const
 {
     return King[w]->lgrid->is_attacked(!w);
 }
@@ -235,9 +236,9 @@ int Board::getPiecePosEval(Piece *piece)
 
 #include "poseval.h"
 
-        bool w = piece->isWhite;
-        int p = posEval[piece->type] [ (w ? piece->lgrid->y : 7 - (piece->lgrid->y)) * 8 + piece->lgrid->x ];
-        return w ? p : -p;
+    bool w = piece->isWhite;
+    int p = posEval[piece->type] [ (w ? piece->lgrid->y : 7 - (piece->lgrid->y)) * 8 + piece->lgrid->x ];
+    return w ? p : -p;
 
 }
 
@@ -274,7 +275,7 @@ int PieceMove::isNull() const
     return (!this->lpiece ? 1 : !this->from ? 2 : !this->to ? 3 : 0);
 }
 
-} // NAMESPACE L
+} //--//--//--//--//--//--//--//--//--// NAMESPACE L
 
 Board::Board(QWidget* parent) : QGraphicsScene(parent)
 {
@@ -294,10 +295,13 @@ Board::Board(QWidget* parent) : QGraphicsScene(parent)
     pieces_w            = new vector<Piece *>;
     pieces_b            = new vector<Piece *>;
     options             = new Options;
-    timerValue[0]       = stack<quint32>();
-    timerValue[1]       = stack<quint32>();
+    timersValue[0]       = stack<quint32>();
+    timersValue[1]       = stack<quint32>();
     aiThread            = new AIThread(this);
     QObject::connect(aiThread, SIGNAL(finished()), this, SLOT(computerMoveEnd()));
+
+
+    highlightedGrids = stack<Grid *>();
 
     //options->flipBoard = true;
     // Board texture
@@ -403,8 +407,8 @@ void Board::newGame()
     piecesSelectable = true;
     lboard->moves->clear();
 
-    timerValue[0] = stack<quint32>();
-    timerValue[0] = stack<quint32>();
+    timersValue[0] = stack<quint32>();
+    timersValue[1] = stack<quint32>();
     reverse(false);
 
 
@@ -537,8 +541,8 @@ void Board::undoMove()
         }
         piece->placeTo(Grid::get(last->from, this));
 
-        this->timer[lboard->move]->stop()->setTime(!timerValue[lboard->move].empty() ? timerValue[lboard->move].top() : 0);
-        timerValue[lboard->move].pop();
+        this->timer[lboard->move]->stop()->setTime(!timersValue[lboard->move].empty() ? timersValue[lboard->move].top() : 0);
+        timersValue[lboard->move].pop();
         this->timer[!lboard->move]->start();
     }
 
@@ -579,15 +583,14 @@ void Board::computerMoveEnd()
 // TODO: optimize
 Board *Board::resetHighligtedGrids()
 {
-    for(int i=0; i<8; i++)
-    {
-        for(int j=0; j<8; j++)
-        {
-            grids[i][j]->Highlight(false);
-        }
+
+    while (!this->highlightedGrids.empty()) {
+        this->highlightedGrids.top()->highlight(0);
+        this->highlightedGrids.pop();
     }
-    if ( lboard->is_check(0) ) King[0]->grid->Highlight();
-    else if ( lboard->is_check(1) ) King[1]->grid->Highlight();
+
+    if ( lboard->isCheck(0) ) King[0]->grid->highlight();
+    else if ( lboard->isCheck(1) ) King[1]->grid->highlight();
 
     return this;
 }
@@ -623,14 +626,14 @@ void Board::endGame()
                 vector<L::Piece *> attackingPieces = g->lgrid->attackedBy(!lboard->move);
                 if (!(i || j)) {
                     for(L::Piece *attackingPiece: attackingPieces)
-                       Grid::get(attackingPiece->lgrid, this)->Highlight();
+                       Grid::get(attackingPiece->lgrid, this)->highlight();
                 }
 
                 else  if (g->lgrid->empty() // grid empty
                         || (g->lgrid->lpiece->isWhite != lboard->move)) // or grid not empty & piece is enemie's
                 {
                     if (attackingPieces.size()){
-                        Grid::get(attackingPieces.at(0)->lgrid, this)->Highlight();
+                        Grid::get(attackingPieces.at(0)->lgrid, this)->highlight();
                     }
                 }
             }
@@ -675,7 +678,7 @@ void Board::replaceElements()
 
         coords[iter]->setFont(font);
 
-        iter ++;
+        iter++;
 
     }
 
@@ -726,14 +729,16 @@ void AIThread::run()
 
 
     L::PieceMove b_bestMove = getBestMove(lboard, level);
-    if (b_bestMove.isNull()) return;
-    bestMove = L::PieceMove(board->lboard->pieces->at( b_bestMove.lpiece->index ),
-                            board->lboard->grid(b_bestMove.from->x, b_bestMove.from->y),
-                            board->lboard->grid(b_bestMove.to->x, b_bestMove.to->y),
-                             b_bestMove.removed);
+    if (!b_bestMove.isNull()) {
+        bestMove = L::PieceMove(board->lboard->pieces->at( b_bestMove.lpiece->index ),
+                                board->lboard->grid(b_bestMove.from->x, b_bestMove.from->y),
+                                board->lboard->grid(b_bestMove.to->x, b_bestMove.to->y),
+                                b_bestMove.removed);
 
-    qreal elapsed = qreal(timer.elapsed()) / 1000;
-    qDebug() << totalIterations << "iter. / " << elapsed << " s = " << (qreal(totalIterations)/(elapsed)) << " i/s";
+        qreal elapsed = qreal(timer.elapsed()) / 1000;
+        qDebug() << totalIterations << "iter. /" << elapsed << "s =" << (qreal(totalIterations)/(elapsed)) << "i/s";
+    }
+
     delete lboard;
 
     //QThread::sleep(qrand()%5);
