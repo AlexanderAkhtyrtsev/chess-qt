@@ -1,13 +1,11 @@
 #include "grid.h"
 
-namespace L {
-
-Grid::Grid(int _x, int _y, L::Board *_board) : x(_x), y(_y), lboard(_board)
+LGrid::LGrid(int _x, int _y, LBoard *_board) : x(_x), y(_y), lboard(_board)
 {
     lpiece = nullptr;
 }
 
-Grid *Grid::offset(int dx, int dy)
+LGrid *LGrid::offset(int dx, int dy)
 {
     assert(this);
     int xn = x+dx;
@@ -18,18 +16,18 @@ Grid *Grid::offset(int dx, int dy)
     return lboard->grids[xn][yn];
 }
 
-QString Grid::name()
+QString LGrid::name() const
 {
     return QString(char(0x61+x)) + QString::number(y+1);
 }
 
-bool Grid::is_attacked(bool w)
+bool LGrid::is_attacked(bool w)
 {
 
-    L::Piece* p_piece;
-    vector<L::Grid *> grids;
+    LPiece* p_piece;
+    vector<LGrid *> grids;
 
-    vector<L::Piece *> *pieces =
+    vector<LPiece *> *pieces =
             w ? lboard->pieces_w
               : lboard->pieces_b;
     unsigned pieces_count = pieces->size();
@@ -38,24 +36,26 @@ bool Grid::is_attacked(bool w)
          p_piece = pieces->at(i);
          if( !p_piece->inGame ) continue;
          grids = p_piece->getGrids(true);
-         if ( std::find(grids.begin(), grids.end(), this) != grids.end() ) return true;
+         if ( std::find(grids.begin(), grids.end(), this) != grids.end() ) {
+             return true;
+         }
     }
     return false;
 }
 
 
 
-bool Grid::empty() const
+bool LGrid::empty() const
 {
     return lpiece == nullptr;
 }
 
-vector<Piece *> Grid::attackedBy(bool w)
+vector<LPiece *> LGrid::attackedBy(bool w)
 {
-    vector<Piece *> *pieces = w ? lboard->pieces_w : lboard->pieces_b;
-    vector<Grid *> grids;
-    vector<Piece *> result;
-    for(Piece *piece: *pieces)
+    vector<LPiece *> *pieces = w ? lboard->pieces_w : lboard->pieces_b;
+    vector<LGrid *> grids;
+    vector<LPiece *> result;
+    for(LPiece *piece: *pieces)
     {
         if (!piece->inGame) continue;
         grids = piece->getGrids(true);
@@ -68,15 +68,15 @@ vector<Piece *> Grid::attackedBy(bool w)
 }
 
 
-} // NAMESPACE L
 
-
-Grid::Grid(L::Grid *l_grid, Board *_board) : QGraphicsItem(), lgrid(l_grid), board(_board)
+Grid::Grid(LGrid *l_grid, Board *_board)
+    : QGraphicsItem(), lgrid(l_grid), board(_board)
 {
     light = false;
     piece = nullptr;
     setZValue(0);
-    setPos(lgrid->x*board->grid_size, (board->reverse() ? lgrid->y : 7-lgrid->y)*board->grid_size);
+    setPos(lgrid->x*board->grid_size,
+           (board->reverse() ? lgrid->y : 7-lgrid->y)*board->grid_size);
 }
 
 Grid::~Grid()
@@ -93,7 +93,7 @@ void Grid::highlight(int lightType)
     update(0, 0, board->grid_size,board->grid_size);
 }
 
-Grid::operator L::Grid() const
+Grid::operator LGrid() const
 {
     return *lgrid;
 }
@@ -108,7 +108,7 @@ Grid *Grid::offset(int dx, int dy)
     return board->grids[xn][yn];
 }
 
-Grid *Grid::get(L::Grid *l_grid, Board *board)
+Grid *Grid::get(LGrid *l_grid, Board *board)
 {
     if (!l_grid) return nullptr;
     return board->grids [l_grid->x][l_grid->y];
@@ -138,7 +138,8 @@ void Grid::paint(QPainter *painter, const QStyleOptionGraphicsItem*, QWidget*)
         case 1:
             color = this->lgrid->empty() ? Qt::green :
                     lgrid->lpiece->isWhite != board->lboard->move ? Qt::red :
-                    board->selected && lgrid->lpiece == board->selected->lpiece ? Qt::blue : Qt::red ;
+                    board->selected && lgrid->lpiece == board->selected->lpiece
+                                                          ? Qt::blue : Qt::red;
             break;
         case 2:
             color = Qt::darkBlue;

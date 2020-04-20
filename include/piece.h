@@ -9,8 +9,8 @@ class Piece : public QGraphicsObject
     Q_OBJECT
 
 public:
-    L::Piece *lpiece;
-    Piece(L::Piece *l_piece, Board * = nullptr);
+    LPiece *lpiece;
+    Piece(LPiece *l_piece, Board * = nullptr);
     ~Piece();
     QPropertyAnimation *anim;
     Board *board;
@@ -20,7 +20,7 @@ public:
     void animateTo(Grid *, bool moveEnd = false);
     void select();
     void remove();
-    static Piece *get(L::Piece *lp, Board *);
+    static Piece *get(LPiece *lp, Board *);
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 public slots:
@@ -29,7 +29,6 @@ protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
 };
 
-namespace L {
 
 
 const struct { bool extra, diagonal,  straight; }  pieceBehavior[7] = {
@@ -42,31 +41,30 @@ const struct { bool extra, diagonal,  straight; }  pieceBehavior[7] = {
     {1,0,0} // Pawn
 };
 
-class Piece {
+class LPiece {
 public:
     enum Type {None, King, Queen, Bishop, Knight, Rook, Pawn};
 
 
-    Piece(Type = Pawn, bool white = true, L::Grid * = nullptr, L::Board * = nullptr);
-    ~Piece();
-    int index;
+    LPiece(Type = Pawn, bool white = true, LGrid * = nullptr, LBoard * = nullptr);
+    ~LPiece();
+    int index {-1};
     Type type;
-    bool isWhite, inGame;
+    bool isWhite, inGame {true};
 
-    L::Grid *lgrid;
-    L::Board *lboard;
-    quint32 moves;
+    LGrid *lgrid;
+    LBoard *lboard;
+    quint32 moves{0};
 
-    bool isMoveValid(L::Grid *);
+    bool isMoveValid(LGrid *);
     void remove();
 
-    void placeTo(L::Grid *gridTo); // setGrid
+    void placeTo(LGrid *gridTo); // setGrid
     void clearMoves();
     bool isProtected();
-    bool moved() const;
-    void makeMove(L::Grid *);
-    vector<Grid *> getGrids(bool attacked = false);
+    bool isMoved() const;
+    void makeMove(LGrid *);
+    vector<LGrid *> getGrids(bool attacked = false);
 };
 
-}// NAMESPACE L
 

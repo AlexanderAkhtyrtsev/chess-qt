@@ -21,27 +21,27 @@ class MainWindow;
 class Options;
 class AIThread;
 
-namespace L {
+
 
 class PieceMove;
-class Grid;
-class Piece;
+class LGrid;
+class LPiece;
 
-class Board {
+class LBoard {
 public:
     static const int initPiecePos[8][8];
-    Grid *grids[8][8];
+    LGrid *grids[8][8];
     vector<PieceMove *> *moves;
     PieceMove *currentMove;
-    vector<Piece *> *pieces, *pieces_w, *pieces_b;
-    Piece *King[2];
+    vector<LPiece *> *pieces, *pieces_w, *pieces_b;
+    LPiece *King[2];
     bool move;
 
-    Board();
-    Board(const Board& b);
-    ~Board();
-    Grid *grid(int x, int y) const;
-    Piece *piece(int index) const;
+    LBoard();
+    LBoard(const LBoard& b);
+    ~LBoard();
+    LGrid *grid(int x, int y) const;
+    LPiece *piece(int index) const;
     bool isCheck(bool) const;
     int check_game();
     void undoMove();
@@ -50,28 +50,27 @@ public:
 
     int getCurrentScore();
 
-    int getPiecePosEval(Piece *piece);
+    int getPiecePosEval(LPiece *piece);
 };
 
 
 class PieceMove
 {
 public:
-    PieceMove(L::Piece *_piece = nullptr,
-              L::Grid *_from = nullptr,
-              L::Grid *_to = nullptr,
-              L::Piece *rem = nullptr,
+    PieceMove(LPiece *_piece = nullptr,
+              LGrid *_from = nullptr,
+              LGrid *_to = nullptr,
+              LPiece *rem = nullptr,
               bool _extra = false);
 
-    L::Piece *lpiece;
-    L::Grid *from, *to;
-    L::Piece *removed;
+    LPiece *lpiece;
+    LGrid *from, *to;
+    LPiece *removed;
     int isNull() const;
     bool extra;
 };
 
 
-} // L NAMESPACE
 
 class Board : public QGraphicsScene
 {
@@ -84,7 +83,7 @@ class Board : public QGraphicsScene
     QGraphicsTextItem *coords[32];
 
 public:
-    L::Board  *lboard;
+    LBoard  *lboard;
     AIThread *aiThread;
     GameTimer *timer[2];
     QSize size;
@@ -128,10 +127,13 @@ class AIThread : public QThread
     Board *board;
     qint64 totalIterations;
 public:
-    L::PieceMove bestMove;
+    PieceMove bestMove;
     AIThread(Board *board);
-    void run();
-    int minimax(L::Board *lboard, int depth, int alpha = MIN_SCORE, int beta = MAX_SCORE);
-    L::PieceMove getBestMove(L::Board *lboard, int depth);
+    /* virtual */ void run();
+    int minimax(LBoard *lboard,
+                int depth,
+                int alpha = MIN_SCORE,
+                int beta = MAX_SCORE);
+    PieceMove getBestMove(LBoard *lboard, int depth);
 };
 

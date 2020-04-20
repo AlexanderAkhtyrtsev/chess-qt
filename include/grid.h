@@ -11,34 +11,33 @@ class Grid : public QGraphicsItem
     int light;
 public:
     Piece *piece;
-    L::Grid *lgrid;
+    LGrid *lgrid;
     Board *board;
-    Grid(L::Grid *lgrid, Board* = nullptr);
+    Grid(LGrid *lgrid, Board* = nullptr);
     ~Grid();
     void highlight(int = 1);
-    operator L::Grid () const;
+    operator LGrid () const;
     Grid *offset(int dx, int dy);
-    static Grid *get(L::Grid *, Board *board);
+    static Grid *get(LGrid *, Board *board);
     QRectF boundingRect() const;
     void paint(QPainter *, const QStyleOptionGraphicsItem *, QWidget *);
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
 };
 
 
-namespace L {
 
-class Grid {
+
+
+class LGrid {
 public:
-    Grid(int _x = 0, int _y = 0, L::Board *l_board = nullptr);
-    L::Grid *offset(int x, int y);
+    LGrid(int _x = 0, int _y = 0, LBoard *l_board = nullptr);
+    LGrid *offset(int x, int y);
     bool is_attacked(bool w);
-    QString name();
+    QString name() const;
     bool empty() const;
-    vector<Piece *> attackedBy(bool w);
+    vector<LPiece *> attackedBy(bool w);
     int x, y;
-    L::Piece* lpiece;
-    L::Board* lboard;
+    LPiece* lpiece;
+    LBoard* lboard;
 };
-
-}
 

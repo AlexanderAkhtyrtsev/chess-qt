@@ -16,8 +16,8 @@ RESOURCES += \
     res.qrc
 
 INCLUDEPATH += $$PWD/include
-HEADERS += $$PWD/include/*
-SOURCES += $$PWD/src/*
+HEADERS += $$PWD/include/*.h
+SOURCES += $$PWD/src/*.cpp
 
 DISTFILES += \
     android/AndroidManifest.xml \

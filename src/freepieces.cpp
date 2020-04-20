@@ -44,6 +44,12 @@ Piece *FreePieces::removePiece(Piece *piece)
     return piece;
 }
 
+void FreePieces::reset()
+{
+    m_pieces->clear();
+    update();
+}
+
 void FreePieces::update()
 {
     unsigned int sz = m_pieces->size();
