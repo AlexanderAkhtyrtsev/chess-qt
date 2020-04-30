@@ -281,8 +281,8 @@ Board::Board(QWidget* parent) : QGraphicsScene(parent)
     grid_size = parent->width() / size.width();
     setSceneRect(0, 0, size.width()*grid_size, size.height()*grid_size);
 
-    chess_tiles = new QPixmap(":/img/chess.png");
-    boardTex = new QGraphicsPixmapItem(QPixmap(":/img/board.png"));
+    piecesTileset = new QPixmap(":/img/pieces.png");
+    boardTexture = new QGraphicsPixmapItem(QPixmap(":/img/board.png"));
 
     lboard              = new LBoard;
     selected            = nullptr;
@@ -302,7 +302,7 @@ Board::Board(QWidget* parent) : QGraphicsScene(parent)
 
     //options->flipBoard = true;
     // Board texture
-    this->addItem(boardTex);
+    this->addItem(boardTexture);
 
 
     for(int i=0; i<8; i++)
@@ -375,8 +375,8 @@ Board::~Board()
     delete pieces_w;
     delete pieces_b;
     delete lboard;
-    delete boardTex;
-    delete chess_tiles;
+    delete boardTexture;
+    delete piecesTileset;
     delete timer[0];
     delete timer[1];
 }
@@ -689,16 +689,16 @@ void Board::replaceElements()
     free_pieces[1]->update();
 
     double multiplier = double(grid_size * size.height()) /
-                        double(boardTex->pixmap().width());
-    boardTex->setScale(multiplier);
-    boardTex->setPos(-1 * grid_size, boardTex->pos().y());
+                        double(boardTexture->pixmap().width());
+    boardTexture->setScale(multiplier);
+    boardTexture->setPos(-1 * grid_size, boardTexture->pos().y());
     if(this->reverse()) {
         auto t = QTransform()
                 .rotate(180, Qt::YAxis)
-                .translate(-boardTex->pixmap().width()*multiplier, 0);
-        boardTex->setTransform(t);
+                .translate(-boardTexture->pixmap().width()*multiplier, 0);
+        boardTexture->setTransform(t);
     } else {
-        boardTex->resetTransform();
+        boardTexture->resetTransform();
     }
 
 

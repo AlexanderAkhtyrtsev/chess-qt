@@ -76,7 +76,7 @@ class Board : public QGraphicsScene
 {
     Q_OBJECT
     bool m_reverse;
-    QGraphicsPixmapItem *boardTex;
+    QGraphicsPixmapItem *boardTexture;
     unsigned m_size;
     bool m_endGame;
     QGraphicsProxyWidget *pw_timer[2];
@@ -99,7 +99,7 @@ public:
     bool reverse() const; // getter
     bool reverse(bool reverse);     // setter
 
-    QPixmap *chess_tiles;
+    QPixmap *piecesTileset;
 
     int grid_size;
     bool piecesSelectable;

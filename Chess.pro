@@ -15,9 +15,14 @@ TEMPLATE = app
 RESOURCES += \
     res.qrc
 
-INCLUDEPATH += $$PWD/include
-HEADERS += $$PWD/include/*.h
-SOURCES += $$PWD/src/*.cpp
+INCLUDEPATH += $$PWD/include \
+               $$PWD/include/game
+
+HEADERS += $$PWD/include/*.h \
+           $$PWD/include/game/*.h
+
+SOURCES += $$PWD/src/*.cpp \
+    $$PWD/src/game/*.cpp
 
 DISTFILES += \
     android/AndroidManifest.xml \

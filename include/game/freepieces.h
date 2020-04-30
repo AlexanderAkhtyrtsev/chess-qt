@@ -13,5 +13,5 @@ public:
     Piece *removePiece(Piece *);
     void reset();
     unsigned pieceCount() const;
-    void update();
+    void update() const;
 };

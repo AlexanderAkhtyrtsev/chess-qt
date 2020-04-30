@@ -551,7 +551,7 @@ QRectF Piece::boundingRect() const
 
 void Piece::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
-    QPixmap pieceTile = board->chess_tiles->scaled(board->grid_size * 6, board->grid_size * 2);
+    QPixmap pieceTile = board->piecesTileset->scaled(board->grid_size * 6, board->grid_size * 2);
 
     painter->save();
         painter->drawPixmap(0, 0, pieceTile,

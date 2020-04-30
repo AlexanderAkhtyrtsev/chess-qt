@@ -50,7 +50,7 @@ void FreePieces::reset()
     update();
 }
 
-void FreePieces::update()
+void FreePieces::update() const
 {
     unsigned int sz = m_pieces->size();
     Piece *piece;

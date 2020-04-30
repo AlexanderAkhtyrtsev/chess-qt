@@ -2,23 +2,23 @@
 #include <QtWidgets>
 #include "board.h"
 #include "graphicsview.h"
-#include "gametimer.h"
 
-class GraphicsView;
-class GameTimer;
-const QSize MIN_WINDOW_SIZE = QSize(800, 600);
+class MenuWidget;
 
-class MainWindow : public QWidget
+class MainWindow : public QMainWindow
 {
     Q_OBJECT
-    QVBoxLayout *vbl;
+private:
+    QVBoxLayout *vbl_menu, *vbl_game;
+    GraphicsView *view;
+    MenuWidget *menu;
     void test();
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    GraphicsView *view;
-    Board *board;
-    QMenuBar *menuBar;
+public slots:
+    void showMenu();
+    void startGame();
 protected:
     void resizeEvent(QResizeEvent *);
     void keyPressEvent(QKeyEvent *);
@@ -29,6 +29,21 @@ class Options {
 public:
     Options();
     bool flipBoard;
-    enum  PlayerType {Human, AI_Stupid = 1, AI_Medium, AI_Hard, AI_Very_Hard};
+    enum  PlayerType {Human, AI_Stupid = 1, AI_Medium, AI_Hard, AI_VeryHard};
     PlayerType player[2];
 };
+
+
+
+class MenuWidget : public QWidget{
+    Q_OBJECT
+public:
+    MenuWidget(MainWindow * = 0);
+    ~MenuWidget();
+private:
+    QVBoxLayout *vbl_menu;
+    QLabel *lbl_image;
+    QPixmap *pix;
+    QPushButton *btn_newGame, *btn_help, *btn_quit, *btn_stat, *btn_settings;
+};
+
