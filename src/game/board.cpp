@@ -351,7 +351,6 @@ Board::Board(QWidget* parent) : QGraphicsScene(parent)
 
      this->options->player[1] = Options::Human;
      this->options->player[0] = Options::AI_Medium;
-     this->newGame();
 }
 
 Board::~Board()

@@ -9,6 +9,19 @@ GraphicsView::GraphicsView(QWidget *parent) : QGraphicsView(parent)
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     setScene(board);
+
+    opacityEffect = new QGraphicsOpacityEffect(this);
+    opacityEffect->setOpacity(1);
+    setGraphicsEffect(opacityEffect);
+}
+
+void GraphicsView::fadeIn()
+{
+    anim = new QPropertyAnimation(opacityEffect, "opacity");
+    anim->setStartValue(0);
+    anim->setEndValue(1);
+    anim->setDuration(200);
+    anim->start();
 }
 
 GraphicsView::~GraphicsView()

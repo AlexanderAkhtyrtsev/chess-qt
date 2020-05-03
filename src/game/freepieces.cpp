@@ -39,7 +39,8 @@ Piece *FreePieces::addPiece(Piece *piece)
 
 Piece *FreePieces::removePiece(Piece *piece)
 {
-    vector<Piece *>::iterator i = std::find(m_pieces->begin(), m_pieces->end(), piece);
+    /*vector<Piece *>::iterator i*/
+    auto i = std::find(m_pieces->begin(), m_pieces->end(), piece);
     if ( i != m_pieces->end() ) m_pieces->erase(i);
     return piece;
 }
@@ -61,10 +62,12 @@ void FreePieces::update() const
         piece = m_pieces->at(i);
         int top = 0,
          bottom = 9;
-        int y = m_board->reverse() ? (piece->lpiece->isWhite ? bottom : top) : (piece->lpiece->isWhite ? top : bottom);
+        int y = m_board->reverse() ? (piece->lpiece->isWhite ? bottom : top) :
+                                     (piece->lpiece->isWhite ? top : bottom);
         if ( i > 0 && piece->lpiece->type != m_pieces->at(i-1)->lpiece->type ) {
             empty+=2;
         }
-        piece->setPos( (empty + i) * (m_board->grid_size) / 3.5, y * m_board->grid_size );
+        piece->setPos( (empty + i) * (m_board->grid_size) / 3.5,
+                       y * m_board->grid_size );
     }
 }

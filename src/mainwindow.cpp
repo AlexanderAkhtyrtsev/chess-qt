@@ -1,6 +1,7 @@
 #include <QApplication>
 #include "mainwindow.h"
 
+
 void MainWindow::test()
 {
 
@@ -9,17 +10,18 @@ void MainWindow::test()
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     resize(800, 600);
+    this->setStyleSheet("background-color: white");
     menu = new MenuWidget(this);
     view = new GraphicsView;
+    newGameDialog = new  NewGameDialog(view->board);
     showMenu();
 }
 
 
 MainWindow::~MainWindow()
 {
+    //delete menu;
     delete view;
-
-//    delete menu;
 }
 
 void MainWindow::showMenu()
@@ -29,7 +31,11 @@ void MainWindow::showMenu()
 
 void MainWindow::startGame()
 {
+    this->setCentralWidget(newGameDialog);
+    /*
     this->setCentralWidget(view);
+    view->board->newGame();
+    view->fadeIn();*/
 }
 
 
@@ -39,7 +45,8 @@ void MainWindow::resizeEvent(QResizeEvent *pe)
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *pe)
-{/*
+{
+    auto board = view->board;
     switch (pe->key())
     {
     case Qt::Key_Backspace:
@@ -57,7 +64,7 @@ void MainWindow::keyPressEvent(QKeyEvent *pe)
     case Qt::Key_N: board->newGame();
         break;
     }
-*/
+
     pe->accept();
 }
 
@@ -81,7 +88,14 @@ int main(int argc, char *argv[])
 
 MenuWidget::MenuWidget(MainWindow *mainWindow)
 {
+    // TODO: OPTIMIZE THIS SHIT (!)
     vbl_menu = new QVBoxLayout;
+    QGraphicsOpacityEffect *oe = new QGraphicsOpacityEffect(this);
+    oe->setOpacity(0);
+    QPropertyAnimation *anim = new QPropertyAnimation(oe, "opacity");
+    anim->setStartValue(0);
+    anim->setEndValue(1);
+    anim->setDuration(1000);
 
     // icon
     pix = new QPixmap(":/img/pieces.png");
@@ -92,7 +106,8 @@ MenuWidget::MenuWidget(MainWindow *mainWindow)
     int r = qrand() % 5;
 
     QPixmap pixCopy = pix->copy(r * dx,0, dx, dy);
-
+    auto pixHeight = rect().size().height()/5;
+    pixCopy = pixCopy.scaled(pixHeight, pixHeight);
 
     lbl_image = new QLabel;
     lbl_image->setPixmap(pixCopy);
@@ -100,7 +115,7 @@ MenuWidget::MenuWidget(MainWindow *mainWindow)
 
     vbl_menu->setAlignment(Qt::AlignVCenter);
     vbl_menu->addWidget(lbl_image);
-    vbl_menu->addWidget(btn_newGame  = new QPushButton("Play Game"));
+    vbl_menu->addWidget(btn_newGame  = new QPushButton("Play Chess"));
     vbl_menu->addWidget(btn_stat     = new QPushButton("Statistics"));
     vbl_menu->addWidget(btn_settings = new QPushButton("Settings"));
     vbl_menu->addWidget(btn_help = new QPushButton("Help"));
@@ -110,11 +125,16 @@ MenuWidget::MenuWidget(MainWindow *mainWindow)
     QObject::connect(btn_newGame, SIGNAL(clicked()), mainWindow, SLOT(startGame()));
 
 
-    this->setStyleSheet("QPushButton { padding: 10px; border: none; font-size: 32px; color: silver;}"
-                        "QPushButton::hover {color: black}"
+
+    btn_newGame->setObjectName("playgamebtn");
+    this->setStyleSheet("QPushButton { padding: 8px; font-size: 18pt; border: none; color: #666;} "
+                        "QPushButton#playgamebtn {font-size:24pt}"
+                        "QPushButton:pressed, QPushButton:hover {color: black; }"
                         );
 
     setLayout(vbl_menu);
+    this->setGraphicsEffect(oe);
+    anim->start();
 }
 
 MenuWidget::~MenuWidget()
