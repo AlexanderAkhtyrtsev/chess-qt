@@ -1,21 +1,39 @@
 #pragma once
 #include "board.h"
 
+class ListSelect;
+class MainWindow;
 class NewGameDialog : public QWidget
 {
     Q_OBJECT
 private:
-    QGraphicsOpacityEffect *opacityEffect;
-    QPropertyAnimation *anim;
-    QComboBox *cb_player[2];
-    QCheckBox *flipBoard;
-    QVBoxLayout *vbl;
-    QHBoxLayout *hbl[2];
-    QLabel *lbl[2];
-    QPushButton *btn_startGame;
+    ListSelect *cpuLevel, *playerSide;
+    QPushButton *btn_play;
 public:
-    NewGameDialog(Board* = 0,  QWidget *parent = nullptr);
-    Board *board;
-    void fadeIn();
+    NewGameDialog(MainWindow* = 0,  QWidget *parent = nullptr);
+    MainWindow *mainWindow;
+//    void fadeIn();
     ~NewGameDialog();
+public slots:
+    void playBtnPressed();
+};
+
+
+class ListSelect : public QWidget
+{
+    Q_OBJECT
+private:
+    QStringList list;
+    QList<QPushButton *> *list_selections;
+    QVBoxLayout *vbl;
+    QHBoxLayout *hbl;
+    QPushButton *optionSelected;
+    QLabel *lbl_header;
+public:
+    ListSelect(QString header, QStringList list_options, QWidget *parent = nullptr);
+    ~ListSelect();
+    void select(QPushButton*);
+public slots:
+    void select();
+    unsigned selected();
 };

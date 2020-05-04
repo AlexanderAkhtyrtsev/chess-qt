@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     this->setStyleSheet("background-color: white");
     menu = new MenuWidget(this);
     view = new GraphicsView;
-    newGameDialog = new  NewGameDialog(view->board);
+    newGameDialog = new  NewGameDialog(this);
     showMenu();
 }
 
@@ -32,10 +32,7 @@ void MainWindow::showMenu()
 void MainWindow::startGame()
 {
     this->setCentralWidget(newGameDialog);
-    /*
-    this->setCentralWidget(view);
-    view->board->newGame();
-    view->fadeIn();*/
+
 }
 
 

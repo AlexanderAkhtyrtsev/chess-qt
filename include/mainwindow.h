@@ -12,11 +12,11 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 private:
     QVBoxLayout *vbl_menu, *vbl_game;
-    GraphicsView *view;
     MenuWidget *menu;
     NewGameDialog *newGameDialog;
     void test();
 public:
+    GraphicsView *view;
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
 public slots:
