@@ -117,7 +117,8 @@ LPiece *LBoard::piece(int index) const
 
 
 /**
- * returns 1 if check mate, 2 if draw, 0 if in game
+ * returns: 0 if in game,
+ *  check mate = 1, draw = 2
  *
 */
 
@@ -127,7 +128,7 @@ int LBoard::check_game()
     vector<LPiece *> *pieces = move ? pieces_w : pieces_b;
     LPiece *temp;
 
-    // is "i" unsigned???
+    // Checkig for possible moves
     for(unsigned i = 0; i < pieces->size(); i++)
     {
         temp = pieces->at(i);
@@ -137,6 +138,21 @@ int LBoard::check_game()
             break;
         }
     }
+
+    // Check for repeating moves
+    auto movesCount = this->moves->size();
+//    unsigned repeatingMoves = 0;
+    if (!game_over && movesCount > 6)
+    {
+        // IF last move is equal previous
+        if (*moves->at(movesCount-1) == *moves->at(movesCount-5)) {
+            if (*moves->at(movesCount-2) == *moves->at(movesCount-6)) {
+                game_over = 2;
+            }
+        }
+    }
+
+
     if (game_over) {
         // the game is already over.
         // loser's move (that isn't possible)
@@ -271,6 +287,16 @@ PieceMove::PieceMove(LPiece *_piece, LGrid *_from, LGrid *_to, LPiece *rem, bool
 int PieceMove::isNull() const
 {
     return (!this->lpiece ? 1 : !this->from ? 2 : !this->to ? 3 : 0);
+}
+
+bool PieceMove::operator==(PieceMove &otherMove)
+{
+    return (this->extra == otherMove.extra &&
+            this->lpiece->index == otherMove.lpiece->index &&
+            this->from->name() == otherMove.from->name() &&
+            this->to->name() == otherMove.to->name()
+            // && removed == removed
+            );
 }
 
 
@@ -614,6 +640,10 @@ void Board::endGame()
     piecesSelectable = false;
     m_endGame = true;
     this->timer[lboard->move]->stop();
+
+    if (this->lboard->check_game() == 2) return;
+
+    // Highlighting figures in check mate
     for(int i=-1; i<2; i++)
     {
         for(int j=-1; j<2; j++)

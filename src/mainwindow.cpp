@@ -3,9 +3,7 @@
 
 
 void MainWindow::test()
-{
-
-}
+{}
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {

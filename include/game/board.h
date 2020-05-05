@@ -68,6 +68,7 @@ public:
     LPiece *removed;
     int isNull() const;
     bool extra;
+    bool operator==(PieceMove &);
 };
 
 
