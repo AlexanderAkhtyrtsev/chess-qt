@@ -141,7 +141,7 @@ int LBoard::check_game()
 
     // Check for repeating moves
     auto movesCount = this->moves->size();
-//    unsigned repeatingMoves = 0;
+
     if (!game_over && movesCount > 6)
     {
         // IF last move is equal previous
@@ -151,7 +151,6 @@ int LBoard::check_game()
             }
         }
     }
-
 
     if (game_over) {
         // the game is already over.

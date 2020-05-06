@@ -9,7 +9,7 @@
 
 const int MIN_SCORE = -999999;
 const int MAX_SCORE =  999999;
-
+const int MIN_GRID_SIZE = 24;
 
 using std::vector;
 using std::stack;

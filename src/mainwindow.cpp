@@ -13,6 +13,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     view = new GraphicsView;
     newGameDialog = new  NewGameDialog(this);
     showMenu();
+
+    this->setMinimumSize(MIN_GRID_SIZE * view->board->size.width(),
+                         MIN_GRID_SIZE * view->board->size.height());
 }
 
 
@@ -30,7 +33,6 @@ void MainWindow::showMenu()
 void MainWindow::startGame()
 {
     this->setCentralWidget(newGameDialog);
-
 }
 
 
