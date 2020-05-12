@@ -42,12 +42,17 @@ const struct { bool extra, diagonal,  straight; }  pieceBehavior[7] = {
 };
 
 class LPiece {
+    vector<LGrid *> m_cachedGrids,
+                    m_cachedAttackedGrids;
+    bool gridsCached {false},
+         attackedGridsCached {false};
 public:
     enum Type {None, King, Queen, Bishop, Knight, Rook, Pawn};
 
 
     LPiece(Type = Pawn, bool white = true, LGrid * = nullptr, LBoard * = nullptr);
     ~LPiece();
+
     int index {-1};
     Type type;
     bool isWhite, inGame {true};
@@ -61,9 +66,9 @@ public:
 
     void placeTo(LGrid *gridTo); // setGrid
     void clearMoves();
-    bool isProtected();
+    bool isProtected() const;
     bool isMoved() const;
-    void makeMove(LGrid *);
+    void makeMove(LGrid *, bool fake = false);
     vector<LGrid *> getGrids(bool attacked = false);
 };
 

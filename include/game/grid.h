@@ -13,12 +13,17 @@ public:
     Piece *piece;
     LGrid *lgrid;
     Board *board;
+
     Grid(LGrid *lgrid, Board* = nullptr);
     ~Grid();
+
     void highlight(int = 1);
     operator LGrid () const;
-    Grid *offset(int dx, int dy);
+
+    Grid *offset(int dx, int dy) const;
     static Grid *get(LGrid *, Board *board);
+
+    // QWidget interface
     QRectF boundingRect() const;
     void paint(QPainter *, const QStyleOptionGraphicsItem *, QWidget *);
     void mousePressEvent(QGraphicsSceneMouseEvent *event);

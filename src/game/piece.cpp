@@ -12,25 +12,45 @@ LPiece::LPiece(LPiece::Type pieceType,
 LPiece::~LPiece()
 {}
 
-bool LPiece::isMoveValid(LGrid *g)
+
+// Check if move valid and not brings king in danger
+bool LPiece::isMoveValid(LGrid *grid_moveTo)
 {
-    LPiece *prev = g->lpiece;
-    LGrid *gprev = lgrid;
-    bool ret = true;
+    bool moveValid {true};
+/*
+    // back-up
+    LPiece *piece_previous = grid_moveTo->lpiece; // may be nullptr
+    LGrid *grid_previous = lgrid;
 
-    if( prev ) prev->inGame = false;
+    if( piece_previous ) {
+        piece_previous->inGame = false;
+    }
+
     lgrid->lpiece = nullptr;
-    lgrid = g;
-    g->lpiece = this;
+    lgrid = grid_moveTo;
+    grid_moveTo->lpiece = this;
+*/
+    // OK, moved
+    // IF check, move invalid
 
-    if ( lboard->isCheck(isWhite) ) ret = false;
+    this->makeMove(grid_moveTo, true);
 
-    lgrid = gprev;
-    g->lpiece = prev;
+    if ( lboard->isCheck(isWhite) ) {
+        moveValid = false;
+    }
+
+    lboard->undoMove();
+/*
+    // restore
+    // return piece to it's place
+    lgrid = grid_previous;
+    grid_moveTo->lpiece = piece_previous;
     lgrid->lpiece = this;
+    if( piece_previous ) {
+        piece_previous->inGame = true;
+    }*/
 
-    if( prev ) prev->inGame = true;
-    return ret;
+    return moveValid;
 }
 
 
@@ -60,19 +80,21 @@ void LPiece::clearMoves()
 
 
 // TODO: check
-bool LPiece::isProtected()
+bool LPiece::isProtected() const
 {
     return this->lgrid->is_attacked(isWhite);
 }
 
 
-void LPiece::makeMove(LGrid *gridTo)
+void LPiece::makeMove(LGrid *gridTo, bool fake)
 {
 
     if( lboard->move != isWhite ||
             (!gridTo->empty() && gridTo->lpiece->isWhite == isWhite) )
     {
+#ifdef _DEBUG
         qDebug() << "makeMove ERROR: wrong move";
+#endif
         return;
     }
 
@@ -139,6 +161,9 @@ void LPiece::makeMove(LGrid *gridTo)
     lboard->move = !lboard->move;
     lboard->moves->push_back(lboard->currentMove);
     this->moves++;
+    if (!fake) {
+        lboard->positionChanged = true;
+    }
 }
 
 
@@ -149,10 +174,20 @@ bool LPiece::isMoved() const
 
 vector<LGrid *> LPiece::getGrids(bool getAttacked)
 {
-    assert(inGame);
+    if (lboard->positionChanged) {
+        gridsCached = false;
+        attackedGridsCached = false;
+    } else if (lboard->moves->size() && !lboard->moves->back()->fake) {     // Check & return if cached, if last move is not fake
+        if (getAttacked && attackedGridsCached) {
+            return m_cachedAttackedGrids;
+        } else if (!getAttacked && gridsCached) {
+            return m_cachedGrids;
+        }
+    }
+
     vector<LGrid *> moves;
 
-    if( pieceBehavior[type].extra )
+    if (pieceBehavior[type].extra)
     {
 
         if (type == Pawn)
@@ -397,6 +432,18 @@ vector<LGrid *> LPiece::getGrids(bool getAttacked)
             }
         }
     }
+
+    if (lboard->moves->size() && !lboard->moves->back()->fake) {
+    // Caching moves
+        if (getAttacked) {
+            m_cachedAttackedGrids = moves;
+            attackedGridsCached = true;
+        } else {
+            m_cachedGrids = moves;
+            gridsCached = true;
+        }
+    }
+
     return moves;
 }
 

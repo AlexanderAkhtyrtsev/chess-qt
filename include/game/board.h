@@ -28,6 +28,8 @@ class LGrid;
 class LPiece;
 
 class LBoard {
+private:
+
 public:
     static const int initPiecePos[8][8];
     LGrid *grids[8][8];
@@ -36,21 +38,21 @@ public:
     vector<LPiece *> *pieces, *pieces_w, *pieces_b;
     LPiece *King[2];
     bool move;
+    bool positionChanged {true};
 
     LBoard();
     LBoard(const LBoard& b);
     ~LBoard();
+
     LGrid *grid(int x, int y) const;
     LPiece *piece(int index) const;
     bool isCheck(bool) const;
-    int check_game();
+    int check_game() const;
     void undoMove();
 
-    vector<PieceMove> getAllMoves();
-
-    int getCurrentScore();
-
-    int getPiecePosEval(LPiece *piece);
+    vector<PieceMove> getAllMoves() const;
+    int getCurrentScore() const;
+    int getPiecePosEval(LPiece *piece) const;
 };
 
 
@@ -61,13 +63,14 @@ public:
               LGrid *_from = nullptr,
               LGrid *_to = nullptr,
               LPiece *rem = nullptr,
-              bool _extra = false);
+              bool _extra = false,
+              bool fake = false);
 
     LPiece *lpiece;
     LGrid *from, *to;
     LPiece *removed;
     int isNull() const;
-    bool extra;
+    bool extra, fake;
     bool operator==(PieceMove &);
 };
 

@@ -7,7 +7,6 @@ LGrid::LGrid(int _x, int _y, LBoard *_board) : x(_x), y(_y), lboard(_board)
 
 LGrid *LGrid::offset(int dx, int dy)
 {
-    assert(this);
     int xn = x+dx;
     int yn = y+dy;
     if ( xn < 0 || xn > 7 || yn < 0 || yn > 7) {
@@ -23,7 +22,6 @@ QString LGrid::name() const
 
 bool LGrid::is_attacked(bool w)
 {
-
     LPiece* p_piece;
     vector<LGrid *> grids;
 
@@ -74,9 +72,10 @@ Grid::Grid(LGrid *l_grid, Board *_board)
 {
     light = false;
     piece = nullptr;
+
     setZValue(0);
-    setPos(lgrid->x*board->grid_size,
-           (board->reverse() ? lgrid->y : 7-lgrid->y)*board->grid_size);
+    setPos(lgrid->x * board->grid_size,
+           (board->reverse() ? lgrid->y : 7 - lgrid->y) * board->grid_size);
 }
 
 Grid::~Grid()
@@ -86,7 +85,7 @@ Grid::~Grid()
 
 void Grid::highlight(int lightType)
 {
-    if (light == lightType) return; // dont change ath cause no needed
+    if (light == lightType) return; // dont change anything cause no needed
 
     board->highlightedGrids.push(this);
     light = lightType;
@@ -98,7 +97,7 @@ Grid::operator LGrid() const
     return *lgrid;
 }
 
-Grid *Grid::offset(int dx, int dy)
+Grid *Grid::offset(int dx, int dy) const
 {
     int xn = lgrid->x+dx,
         yn = lgrid->y+dy;
