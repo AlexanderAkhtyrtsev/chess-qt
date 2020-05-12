@@ -13,7 +13,7 @@ TEMPLATE = app
 
 
 RESOURCES += \
-    res.qrc
+    res/res.qrc
 
 INCLUDEPATH += $$PWD/include \
                $$PWD/include/game
