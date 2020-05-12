@@ -99,7 +99,7 @@ void LPiece::makeMove(LGrid *gridTo, bool fake)
     }
 
     lboard->currentMove = new PieceMove(this, lgrid, gridTo);
-
+    lboard->currentMove->fake = fake;
 
     // Castling
     if (type == King)
@@ -158,12 +158,12 @@ void LPiece::makeMove(LGrid *gridTo, bool fake)
         lboard->currentMove->extra = true;
     }
 
-    lboard->move = !lboard->move;
     lboard->moves->push_back(lboard->currentMove);
-    this->moves++;
     if (!fake) {
         lboard->positionChanged = true;
+        this->moves++;
     }
+    lboard->move = !lboard->move;
 }
 
 
@@ -177,7 +177,8 @@ vector<LGrid *> LPiece::getGrids(bool getAttacked)
     if (lboard->positionChanged) {
         gridsCached = false;
         attackedGridsCached = false;
-    } else if (lboard->moves->size() && !lboard->moves->back()->fake) {     // Check & return if cached, if last move is not fake
+    } else if (lboard->moves->size() && !lboard->moves->back()->fake) {
+        // Check & return if cached, if last move is not fake
         if (getAttacked && attackedGridsCached) {
             return m_cachedAttackedGrids;
         } else if (!getAttacked && gridsCached) {
