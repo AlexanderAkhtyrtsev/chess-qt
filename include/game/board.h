@@ -130,6 +130,7 @@ class AIThread : public QThread
 {
     Board *board;
     qint64 totalIterations;
+    bool interrupted {false};
 public:
     PieceMove bestMove;
     AIThread(Board *board);
@@ -138,6 +139,8 @@ public:
                 int depth,
                 int alpha = MIN_SCORE,
                 int beta = MAX_SCORE);
-    PieceMove getBestMove(LBoard *lboard, int depth);
+    vector<PieceMove> getBestMoves(LBoard *lboard, int depth);
+    bool isInterrupted() const;
+    void setInterrupted(bool value);
 };
 

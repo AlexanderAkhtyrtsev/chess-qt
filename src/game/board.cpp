@@ -294,14 +294,32 @@ void Board::computerMove()
     if (aiThread->isRunning()){
         return;
     }
-    aiThread->start();
     piecesSelectable = false;
+
+    /*
+    // Show as cpu thinking
+
+    LBoard *copyBoard = new LBoard(*lboard);
+    auto possibleMoves = aiThread->getBestMoves(copyBoard, 2);
+
+    PieceMove possibleMove;
+    if (possibleMoves.size() > 0) {
+        possibleMove = possibleMoves[0];
+    }
+
+     if (!possibleMove.isNull()) {
+         Grid::get(possibleMove.from, this)->highlight(2);
+     }
+
+    delete copyBoard;
+    //*/
+    aiThread->start();
 }
 
 
 void Board::computerMoveEnd()
 {
-    if (!aiThread->bestMove.isNull()) {
+    if (!aiThread->bestMove.isNull() && !aiThread->isInterrupted()) {
         Piece::get(aiThread->bestMove.lpiece, this)->makeMove(Grid::get(aiThread->bestMove.to, this));
         aiThread->bestMove = nullptr;
     }
@@ -449,27 +467,55 @@ void Board::mousePressEvent(QGraphicsSceneMouseEvent *event)
     QGraphicsScene::mousePressEvent(event);
 }
 
-AIThread::AIThread(Board *_board)
+bool AIThread::isInterrupted() const
 {
-    board = _board;
-
+    return interrupted;
 }
+
+void AIThread::setInterrupted(bool value)
+{
+    interrupted = value;
+}
+
+AIThread::AIThread(Board *_board)
+    : board(_board)
+{
+    // initialize random
+    qsrand(static_cast<quint32>(time(nullptr)));
+}
+
+
 
 void AIThread::run()
 {
-    qsrand(static_cast<quint32>(time(nullptr)));
-
+    this->setInterrupted(false);
     totalIterations = 0;
 
     QElapsedTimer timer;
     timer.start();
+
     LBoard *lboard = new LBoard(*board->lboard);//board->lboard;
 
     auto playerType = board->options->player[board->lboard->move];
     int level = playerType == 1 ? 2 : playerType == 2 ? 3 : 4;
 
 
-    PieceMove r_bestMove = getBestMove(lboard, level);
+    vector<PieceMove> bestMoves = getBestMoves(lboard, level);
+    PieceMove r_bestMove;
+
+
+    if (bestMoves.size()) {
+        unsigned int r = (static_cast<unsigned int>(qrand()) % bestMoves.size());
+        r_bestMove = bestMoves.size() > 1 ? bestMoves[r] : bestMoves[0];
+        qDebug() << "(random from" << bestMoves.size() << "best moves)";
+    }
+
+    else if (r_bestMove.isNull() && bestMoves.size()) {
+        unsigned int r = (static_cast<unsigned int>(qrand()) % bestMoves.size());
+        r_bestMove = bestMoves[r];
+        qDebug() << "(random from ALL moves)";
+    }
+
     if (!r_bestMove.isNull()) {
        bestMove = PieceMove(board->lboard->pieces->at(r_bestMove.lpiece->index),
                     board->lboard->grid(r_bestMove.from->x, r_bestMove.from->y),
@@ -482,8 +528,9 @@ void AIThread::run()
     }
 
     delete lboard;
-
-    //QThread::sleep(qrand()%5);
+    if (timer.elapsed() < 1000) {
+        QThread::sleep(qrand()%3+1);
+    }
 }
 
 
@@ -493,6 +540,7 @@ int AIThread::minimax(LBoard *lboard, int depth, int alpha, int beta)
     int bestMove = lboard->move ? MIN_SCORE : MAX_SCORE;
 
     if (isInterruptionRequested()) {
+        interrupted = true;
         return bestMove;
     }
 
@@ -524,22 +572,25 @@ int AIThread::minimax(LBoard *lboard, int depth, int alpha, int beta)
 }
 
 
-PieceMove AIThread::getBestMove(LBoard *lboard, int depth)
+vector<PieceMove> AIThread::getBestMoves(LBoard *lboard, int depth)
 {
-    PieceMove bestMove;
+    vector<PieceMove> eqMoves,
+            moves = lboard->getAllMoves();
     if (this->isInterruptionRequested())
     {
-        qDebug() << "INT";
-        return bestMove;
+#ifdef _DEBUG
+        qDebug() << "AIThread::interruption";
+#endif
+        interrupted = true;
+        return moves;
     }
 
-    vector<PieceMove> eqMoves, moves = lboard->getAllMoves();
     totalIterations = 0;
     if (depth > 0) {
 
         if (!moves.size()) {
             qDebug() << "no moves :(";
-            return bestMove;
+            return moves;
         }
 
         int score = lboard->move ? MIN_SCORE : MAX_SCORE;
@@ -553,7 +604,8 @@ PieceMove AIThread::getBestMove(LBoard *lboard, int depth)
             lboard->undoMove();
 
             if (isInterruptionRequested()) {
-                return bestMove;
+                interrupted = true;
+                return moves;
             }
 
             if (lboard->move){
@@ -578,20 +630,7 @@ PieceMove AIThread::getBestMove(LBoard *lboard, int depth)
         }
     }
 
-    if (eqMoves.size()) {
-        unsigned int r = (static_cast<unsigned int>(qrand()) % eqMoves.size());
-        bestMove = eqMoves.size() > 1 ? eqMoves[r] : eqMoves[0];
-        qDebug() << "(random from" << eqMoves.size() << "best moves)";
-    }
-
-    else if (bestMove.isNull() && moves.size()) {
-        unsigned int r = (static_cast<unsigned int>(qrand()) % moves.size());
-        bestMove = moves[r];
-
-        qDebug() << "(random from AL moves)";
-    }
-
-    return bestMove;
+    return eqMoves;
 }
 
 
@@ -725,6 +764,7 @@ int LBoard::check_game() const
     LPiece *temp;
 
     // Checkig for possible moves
+    // IF not possible moves is mean draw
     for(unsigned i = 0; i < pieces->size(); i++)
     {
         temp = pieces->at(i);
@@ -735,18 +775,6 @@ int LBoard::check_game() const
         }
     }
 
-    // Check for repeating moves
-    auto movesCount = this->moves->size();
-    if (!game_over && movesCount > 6)
-    {
-        // IF last move is equal previous
-        if (*moves->at(movesCount-1) == *moves->at(movesCount-5)) {
-            if (*moves->at(movesCount-2) == *moves->at(movesCount-6)) {
-                game_over = 2;
-            }
-        }
-    }
-
     if (game_over) {
         // the game is already over.
         // loser's move (that isn't possible)
@@ -754,6 +782,20 @@ int LBoard::check_game() const
             game_over = 1;
         }
     }
+    else {
+        // Check for repeating moves
+        auto movesCount = this->moves->size();
+        if (!game_over && movesCount > 6)
+        {
+            // IF last move is equal previous
+            if (*moves->at(movesCount-1) == *moves->at(movesCount-5)) {
+                if (*moves->at(movesCount-2) == *moves->at(movesCount-6)) {
+                    game_over = 2;
+                }
+            }
+        }
+    }
+
     return game_over;
 }
 

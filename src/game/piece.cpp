@@ -16,41 +16,16 @@ LPiece::~LPiece()
 // Check if move valid and not brings king in danger
 bool LPiece::isMoveValid(LGrid *grid_moveTo)
 {
-    bool moveValid {true};
-/*
-    // back-up
-    LPiece *piece_previous = grid_moveTo->lpiece; // may be nullptr
-    LGrid *grid_previous = lgrid;
-
-    if( piece_previous ) {
-        piece_previous->inGame = false;
-    }
-
-    lgrid->lpiece = nullptr;
-    lgrid = grid_moveTo;
-    grid_moveTo->lpiece = this;
-*/
-    // OK, moved
-    // IF check, move invalid
+    bool isMoveValid {true};
 
     this->makeMove(grid_moveTo, true);
 
     if ( lboard->isCheck(isWhite) ) {
-        moveValid = false;
+        isMoveValid = false;
     }
 
     lboard->undoMove();
-/*
-    // restore
-    // return piece to it's place
-    lgrid = grid_previous;
-    grid_moveTo->lpiece = piece_previous;
-    lgrid->lpiece = this;
-    if( piece_previous ) {
-        piece_previous->inGame = true;
-    }*/
-
-    return moveValid;
+    return isMoveValid;
 }
 
 
@@ -159,9 +134,9 @@ void LPiece::makeMove(LGrid *gridTo, bool fake)
     }
 
     lboard->moves->push_back(lboard->currentMove);
+    this->moves++;
     if (!fake) {
         lboard->positionChanged = true;
-        this->moves++;
     }
     lboard->move = !lboard->move;
 }
@@ -480,7 +455,10 @@ void Piece::makeMove(Grid *gridTo)
             (!gridTo->lgrid->empty() &&
              gridTo->lgrid->lpiece->isWhite == lpiece->isWhite) )
     {
-        qDebug() << "makeMove ERROR: wrong move";
+#ifdef _DEBUG
+        qDebug() << "makeMove ERROR: wrong move" << (board->lboard->move != lpiece->isWhite)
+                 <<(!gridTo->lgrid->empty() && gridTo->lgrid->lpiece->isWhite == lpiece->isWhite) ;
+#endif
         return;
     }
 
