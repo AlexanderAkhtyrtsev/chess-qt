@@ -508,10 +508,9 @@ void Piece::moveEnd()
 {
     assert ( !lpiece->lboard->currentMove->isNull() );
 
-    Piece *rm = Piece::get(lpiece->lboard->currentMove->removed, board);
-
-    if (rm) rm->remove();
-
+    if (lpiece->lboard->currentMove->removed) {
+        Piece::get(lpiece->lboard->currentMove->removed, board)->remove();
+    }
     this->placeTo(Grid::get(lpiece->lboard->currentMove->to, board));
 
     board->resetHighligtedGrids();
@@ -565,7 +564,12 @@ void Piece::remove()
 
 Piece *Piece::get(LPiece *lp, Board *board)
 {
-    if (!lp || !board || lp->index < 0) return nullptr;
+    if (!lp || !board || lp->index < 0 || lp->index > 31){
+#ifdef _DEBUG
+        qDebug() << "Piece::get: nullptr returned";
+#endif
+        return nullptr;
+    }
     return board->pieces->at(quint32(lp->index));
 }
 

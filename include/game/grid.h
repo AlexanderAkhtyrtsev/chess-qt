@@ -5,9 +5,10 @@
 #include "piece.h"
 
 
-
+//TODO: optimize: private members
 class Grid : public QGraphicsItem
 {
+private:
     int light;
 public:
     Piece *piece;

@@ -112,17 +112,18 @@ Board::~Board()
 // TODO: check this one
 void Board::newGame()
 {
-    while (aiThread->isRunning()) {
-        aiThread->requestInterruption();
-    }
 
     Piece *p;
-    if (lboard->currentMove && (p = Piece::get(lboard->currentMove->lpiece, this)) &&
+    if (lboard->currentMove && lboard->currentMove->lpiece &&
+            (p = Piece::get(lboard->currentMove->lpiece, this)) &&
             p->anim->state() == QAbstractAnimation::Running)
     {
         p->anim->stop();
     }
 
+    while (aiThread->isRunning()) {
+        aiThread->requestInterruption();
+    }
 
     this->timer[0]->reset();
     this->timer[1]->reset()->start();
@@ -239,8 +240,8 @@ void Board::undoMove()
 
     } else {
 
-        Piece *removed = Piece::get(last->removed, this);
-        if (removed){
+        if (last->removed){
+            Piece *removed = Piece::get(last->removed, this);
             free_pieces[removed->lpiece->isWhite]->removePiece(removed);
             free_pieces[removed->lpiece->isWhite]->update();
             Grid *prevPos_grid =
@@ -845,6 +846,7 @@ void LBoard::undoMove()
     last->lpiece->moves--;
     moves->erase( moves->end() - 1 );
     delete last;
+    this->currentMove = nullptr;
     move = !move;
 }
 
