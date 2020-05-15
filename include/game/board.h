@@ -21,15 +21,14 @@ class MainWindow;
 class Options;
 class AIThread;
 
-
-
 class PieceMove;
 class LGrid;
 class LPiece;
 
 class LBoard {
 private:
-
+    int cachedScore{0};
+    //bool b_isScoreCached{false};
 public:
     static const int initPiecePos[8][8];
     LGrid *grids[8][8];
@@ -51,7 +50,7 @@ public:
     void undoMove();
 
     vector<PieceMove> getAllMoves() const;
-    int getCurrentScore() const;
+    int getCurrentScore() ;
     int getPiecePosEval(LPiece *piece) const;
 };
 
@@ -79,13 +78,14 @@ public:
 class Board : public QGraphicsScene
 {
     Q_OBJECT
+private:
     bool m_reverse;
     QGraphicsPixmapItem *boardTexture;
     unsigned m_size;
     bool m_endGame;
     QGraphicsProxyWidget *pw_timer[2];
     QGraphicsTextItem *coords[32];
-
+    bool piecesSelectable;
 public:
     LBoard  *lboard;
     AIThread *aiThread;
@@ -102,11 +102,8 @@ public:
     Board *resetHighligtedGrids();
     bool reverse() const; // getter
     bool reverse(bool reverse);     // setter
-
     QPixmap *piecesTileset;
-
     int grid_size;
-    bool piecesSelectable;
     Grid* grids[8][8];
     vector<Piece *> *pieces;
     stack<quint32> timersValue[2];
@@ -117,6 +114,8 @@ public:
     Options *options;
     void endGame();
     void computerMove();
+    bool isPiecesSelectable() const;
+    void setPiecesSelectable(bool value);
 public slots:
     void computerMoveEnd();
     void newGame();

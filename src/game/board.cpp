@@ -1,7 +1,16 @@
 #include "board.h"
 #include "piece.h"
-//#include <time.h>
 #include "freepieces.h"
+
+bool Board::isPiecesSelectable() const
+{
+    return piecesSelectable;
+}
+
+void Board::setPiecesSelectable(bool value)
+{
+    piecesSelectable = value;
+}
 
 Board::Board(QWidget* parent) : QGraphicsScene(parent)
 {
@@ -116,7 +125,7 @@ void Board::newGame()
     Piece *p;
     if (lboard->currentMove && lboard->currentMove->lpiece &&
             (p = Piece::get(lboard->currentMove->lpiece, this)) &&
-            p->anim->state() == QAbstractAnimation::Running)
+            p->isAnimationRunning())
     {
         p->anim->stop();
     }
@@ -130,7 +139,7 @@ void Board::newGame()
 
     selected = nullptr;
     lboard->move  = true; // true = white
-    piecesSelectable = true;
+    this->setPiecesSelectable(true);
     lboard->moves->clear();
 
     timersValue[0] = stack<quint32>();
@@ -201,7 +210,7 @@ void Board::undoMove()
 
 
     if (m_endGame) {
-        piecesSelectable = true;
+        this->setPiecesSelectable(true);
         m_endGame = false;
         this->timer[lboard->move]->start();
     }
@@ -212,7 +221,7 @@ void Board::undoMove()
     // Stopping animation
     if (piece->anim->state() == QAbstractAnimation::Running)
     {
-        piecesSelectable = true;
+        this->setPiecesSelectable(true);
         piece->anim->stop();
         piece->placeTo(Grid::get(last->from, this));
 
@@ -295,7 +304,7 @@ void Board::computerMove()
     if (aiThread->isRunning()){
         return;
     }
-    piecesSelectable = false;
+    this->setPiecesSelectable(false);
 
     /*
     // Show as cpu thinking
@@ -324,7 +333,7 @@ void Board::computerMoveEnd()
         Piece::get(aiThread->bestMove.lpiece, this)->makeMove(Grid::get(aiThread->bestMove.to, this));
         aiThread->bestMove = nullptr;
     }
-    piecesSelectable = true;
+    this->setPiecesSelectable(true);
 }
 
 // TODO: optimize
@@ -336,8 +345,8 @@ Board *Board::resetHighligtedGrids()
         this->highlightedGrids.pop();
     }
 
-    if ( lboard->isCheck(0) ) King[0]->grid->highlight();
-    else if ( lboard->isCheck(1) ) King[1]->grid->highlight();
+    if ( lboard->isCheck(0) ) King[0]->grid->highlight(2);
+    else if ( lboard->isCheck(1) ) King[1]->grid->highlight(2);
 
     return this;
 }
@@ -359,7 +368,7 @@ bool Board::reverse(bool reverse)
 
 void Board::endGame()
 {
-    piecesSelectable = false;
+    this->setPiecesSelectable(false);
     m_endGame = true;
     this->timer[lboard->move]->stop();
 
@@ -377,7 +386,7 @@ void Board::endGame()
                 auto attackingPieces = g->lgrid->attackedBy(!lboard->move);
                 if (!(i || j)) {
                     for(LPiece *attackingPiece: attackingPieces)
-                       Grid::get(attackingPiece->lgrid, this)->highlight();
+                       Grid::get(attackingPiece->lgrid, this)->highlight(2);
                 }
 
                 else  if (g->lgrid->empty() // grid empty
@@ -386,7 +395,7 @@ void Board::endGame()
                 {
                     if (attackingPieces.size()){
                         Grid::get(attackingPieces.at(0)->lgrid,
-                                  this) -> highlight();
+                                  this) -> highlight(2);
                     }
                 }
             }
@@ -481,8 +490,7 @@ void AIThread::setInterrupted(bool value)
 AIThread::AIThread(Board *_board)
     : board(_board)
 {
-    // initialize random
-    qsrand(static_cast<quint32>(time(nullptr)));
+
 }
 
 
@@ -500,7 +508,7 @@ void AIThread::run()
     auto playerType = board->options->player[board->lboard->move];
     int level = playerType == 1 ? 2 : playerType == 2 ? 3 : 4;
 
-
+    //if (lboard->moves->size() < 11) level = 2;
     vector<PieceMove> bestMoves = getBestMoves(lboard, level);
     PieceMove r_bestMove;
 
@@ -595,7 +603,6 @@ vector<PieceMove> AIThread::getBestMoves(LBoard *lboard, int depth)
         }
 
         int score = lboard->move ? MIN_SCORE : MAX_SCORE;
-
 
         for(PieceMove pieceMove : moves)
         {
@@ -781,6 +788,9 @@ int LBoard::check_game() const
         // loser's move (that isn't possible)
         if( this->isCheck(this->move) ){
             game_over = 1;
+#ifdef _DEBUG
+                    qDebug() << "Check mate!";
+#endif
         }
     }
     else {
@@ -792,6 +802,9 @@ int LBoard::check_game() const
             if (*moves->at(movesCount-1) == *moves->at(movesCount-5)) {
                 if (*moves->at(movesCount-2) == *moves->at(movesCount-6)) {
                     game_over = 2;
+#ifdef _DEBUG
+                    qDebug() << "Draw!";
+#endif
                 }
             }
         }
@@ -862,10 +875,11 @@ bool LBoard::isCheck(bool w) const
 
 
 
-int LBoard::getCurrentScore() const
+int LBoard::getCurrentScore()
 {
     //int Points =              {None, King, Queen, Bishop, Knight, Rook, Pawn};
     const static int points[] = {0,    10000,    1000,    500,     510,  800,   100};
+
 
     int gameState = this->check_game();
 
@@ -883,7 +897,9 @@ int LBoard::getCurrentScore() const
             total += getPiecePosEval(piece);
         }
     }
+
     return total ;
+
 }
 
 int LBoard::getPiecePosEval(LPiece *piece) const

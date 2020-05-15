@@ -88,8 +88,9 @@ void Grid::highlight(int lightType)
     if (light == lightType) return; // dont change anything cause no needed
 
     board->highlightedGrids.push(this);
+
     light = lightType;
-    update(0, 0, board->grid_size,board->grid_size);
+    update(0, 0, board->grid_size,board->grid_size); // repaint
 }
 
 Grid::operator LGrid() const
@@ -119,7 +120,6 @@ QRectF Grid::boundingRect() const
     return QRectF(0, 0, board->grid_size, board->grid_size);
 }
 
-
 void Grid::paint(QPainter *painter, const QStyleOptionGraphicsItem*, QWidget*)
 {
 
@@ -135,13 +135,16 @@ void Grid::paint(QPainter *painter, const QStyleOptionGraphicsItem*, QWidget*)
         QColor color;
         switch (light) {
         case 1:
-            color = this->lgrid->empty() ? Qt::green :
-                    lgrid->lpiece->isWhite != board->lboard->move ? Qt::red :
-                    board->selected && lgrid->lpiece == board->selected->lpiece
-                                                          ? Qt::blue : Qt::red;
+            color =  (lgrid->lpiece && lgrid->lpiece->isWhite != board->lboard->move ) ? Qt::red : Qt::green;
             break;
         case 2:
+            color = Qt::red;
+            break;
+        case 3:
             color = Qt::darkBlue;
+            break;
+        case 4:
+            color = Qt::blue;
             break;
         };
 

@@ -23,6 +23,7 @@ public:
     static Piece *get(LPiece *lp, Board *);
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    bool isAnimationRunning() const;
 public slots:
     void moveEnd();
 protected:

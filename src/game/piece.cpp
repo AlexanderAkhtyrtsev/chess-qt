@@ -472,7 +472,7 @@ void Piece::makeMove(Grid *gridTo)
     assert ( !lpiece->lboard->currentMove->isNull() );
 
     board->selected = nullptr;
-    board->piecesSelectable = false;
+    board->setPiecesSelectable(false);
 
     this->setZValue(2);
     this->animateTo(gridTo, true);
@@ -506,7 +506,8 @@ void Piece::makeMove(Grid *gridTo)
 
 void Piece::moveEnd()
 {
-    assert ( !lpiece->lboard->currentMove->isNull() );
+    // this one just fixes SIGSEGV
+    if (lpiece->lboard->currentMove == nullptr) return;
 
     if (lpiece->lboard->currentMove->removed) {
         Piece::get(lpiece->lboard->currentMove->removed, board)->remove();
@@ -514,10 +515,12 @@ void Piece::moveEnd()
     this->placeTo(Grid::get(lpiece->lboard->currentMove->to, board));
 
     board->resetHighligtedGrids();
-    Grid::get(lpiece->lboard->currentMove->from, board)->highlight(2);
-    Grid::get(lpiece->lboard->currentMove->to, board)->highlight(2);
 
-    board->piecesSelectable = true;
+    // Highlight last move
+    Grid::get(lpiece->lboard->currentMove->from, board)->highlight(4);
+    Grid::get(lpiece->lboard->currentMove->to, board)->highlight(4);
+
+    board->setPiecesSelectable(true);
     this->setZValue(1);
     anim->disconnect();
     board->pieceMoveCompleted();
@@ -540,7 +543,7 @@ void Piece::animateTo(Grid *gridTo, bool moveEnd)
 void Piece::select()
 {
     assert( lpiece->inGame &&
-            board->lboard->move == lpiece->isWhite && board->piecesSelectable );
+            board->lboard->move == lpiece->isWhite && board->isPiecesSelectable() );
 
     board->resetHighligtedGrids();
     vector<LGrid *> availMoves = lpiece->getGrids();
@@ -552,7 +555,7 @@ void Piece::select()
     {
         for(unsigned i=0; i<availMoves.size(); i++)
         {
-            Grid::get(availMoves[i], board)->highlight();
+            Grid::get(availMoves[i], board)->highlight(1);
         }
     }
 }
@@ -587,7 +590,12 @@ void Piece::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *
         painter->drawPixmap(0, 0, pieceTile,
                            (lpiece->type-1) * board->grid_size, lpiece->isWhite ? 0 : board->grid_size,
                            board->grid_size*1, board->grid_size);
-    painter->restore();
+        painter->restore();
+}
+
+bool Piece::isAnimationRunning() const
+{
+    return this->anim->state() == QAbstractAnimation::Running;
 }
 
 
@@ -595,7 +603,7 @@ void Piece::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *
 void Piece::mousePressEvent(QGraphicsSceneMouseEvent *pe)
 {
     if ( pe->button() == Qt::LeftButton && lpiece->inGame &&
-         board->lboard->move == lpiece->isWhite && board->piecesSelectable){
+         board->lboard->move == lpiece->isWhite && board->isPiecesSelectable()){
         this->select();
     }
     QGraphicsItem::mousePressEvent(pe);

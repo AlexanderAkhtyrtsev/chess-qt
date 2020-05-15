@@ -76,6 +76,8 @@ Options::Options()
 // PROGRAM ENTRY POINT
 int main(int argc, char *argv[])
 {
+    // initialize random
+    qsrand(static_cast<quint32>(time(nullptr)));
     QApplication a(argc, argv);
     MainWindow w;
     w.show();
