@@ -18,16 +18,16 @@ Piece *FreePieces::addPiece(Piece *piece)
     if (!sz) {
         m_pieces->push_back(piece);
     } else {
-        bool f = false;
+        bool samePieceFound = false;
         for(unsigned i=0; i<sz; i++) {
             if(m_pieces->at(i)->lpiece->type == piece->lpiece->type) {
                 m_pieces->insert(m_pieces->begin()+i+1, piece);
-                f = true;
+                samePieceFound = true;
                 break;
             }
         }
 
-        if (!f) {
+        if (!samePieceFound) {
             m_pieces->push_back(piece);
         }
     }

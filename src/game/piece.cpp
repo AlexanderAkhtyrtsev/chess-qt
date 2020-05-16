@@ -598,6 +598,11 @@ bool Piece::isAnimationRunning() const
     return this->anim->state() == QAbstractAnimation::Running;
 }
 
+void Piece::stopAnimation()
+{
+    this->anim->stop();
+}
+
 
 
 void Piece::mousePressEvent(QGraphicsSceneMouseEvent *pe)

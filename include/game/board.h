@@ -26,9 +26,6 @@ class LGrid;
 class LPiece;
 
 class LBoard {
-private:
-    int cachedScore{0};
-    //bool b_isScoreCached{false};
 public:
     static const int initPiecePos[8][8];
     LGrid *grids[8][8];

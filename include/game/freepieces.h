@@ -3,9 +3,6 @@
 
 class FreePieces
 {
-private:
-    Board *m_board;
-    vector<Piece *> *m_pieces;
 public:
     FreePieces(Board *);
     ~FreePieces();
@@ -14,4 +11,7 @@ public:
     void reset();
     unsigned pieceCount() const;
     void update() const;
+private:
+    Board *m_board;
+    vector<Piece *> *m_pieces;
 };

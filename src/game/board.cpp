@@ -127,7 +127,7 @@ void Board::newGame()
             (p = Piece::get(lboard->currentMove->lpiece, this)) &&
             p->isAnimationRunning())
     {
-        p->anim->stop();
+        p->stopAnimation();
     }
 
     while (aiThread->isRunning()) {
@@ -219,10 +219,10 @@ void Board::undoMove()
     Piece *piece = Piece::get(last->lpiece, this);
 
     // Stopping animation
-    if (piece->anim->state() == QAbstractAnimation::Running)
+    if (piece->isAnimationRunning())
     {
         this->setPiecesSelectable(true);
-        piece->anim->stop();
+        piece->stopAnimation();
         piece->placeTo(Grid::get(last->from, this));
 
         // Castling
@@ -232,14 +232,14 @@ void Board::undoMove()
             if (piece->grid->lgrid->offset(2, 0) == last->to)
             {
                 rook = piece->grid->offset(1, 0)->piece;
-                rook->anim->stop();
+                rook->stopAnimation();
                 rook->placeTo(rook->grid->offset(2, 0));
             }
 
             else //if (piece->grid->lgrid->offset(-2, 0) == last->to)
             {
                 rook = piece->grid->offset(-1, 0)->piece;
-                rook->anim->stop();
+                rook->stopAnimation();
                 rook->placeTo(rook->grid->offset(-3, 0));
             }
         }

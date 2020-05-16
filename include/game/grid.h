@@ -20,13 +20,13 @@ public:
 
     void highlight(int = 1);
     operator LGrid () const;
-
     Grid *offset(int dx, int dy) const;
     static Grid *get(LGrid *, Board *board);
 
     // QWidget interface
     QRectF boundingRect() const;
     void paint(QPainter *, const QStyleOptionGraphicsItem *, QWidget *);
+protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
 };
 

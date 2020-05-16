@@ -7,12 +7,12 @@
 class Piece : public QGraphicsObject
 {
     Q_OBJECT
-
+private:
+    QPropertyAnimation *anim;
 public:
     LPiece *lpiece;
     Piece(LPiece *l_piece, Board * = nullptr);
     ~Piece();
-    QPropertyAnimation *anim;
     Board *board;
     Grid *grid;
     void placeTo(Grid *grid_to, bool show = true);
@@ -24,6 +24,7 @@ public:
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     bool isAnimationRunning() const;
+    void stopAnimation();
 public slots:
     void moveEnd();
 protected:
