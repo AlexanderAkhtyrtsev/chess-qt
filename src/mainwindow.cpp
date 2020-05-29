@@ -7,15 +7,17 @@ void MainWindow::test()
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
-    resize(800, 600);
+
     this->setStyleSheet("background-color: white");
     menu = new MenuWidget(this);
     view = new GraphicsView;
     newGameDialog = new  NewGameDialog(this);
     showMenu();
-
+#ifndef Q_OS_ANDROID
+    resize(800, 600);
     this->setMinimumSize(MIN_GRID_SIZE * view->board->size.width(),
                          MIN_GRID_SIZE * view->board->size.height());
+#endif
 }
 
 

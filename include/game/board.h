@@ -4,8 +4,12 @@
 #include <vector>
 #include <stack>
 #include <algorithm>
-#include <cassert>
 #include "gametimer.h"
+
+
+#ifdef _DEBUG
+#include <cassert>
+#endif
 
 const int MIN_SCORE = -999999;
 const int MAX_SCORE =  999999;

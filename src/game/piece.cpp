@@ -38,8 +38,9 @@ void LPiece::remove()
 
 void LPiece::placeTo(LGrid *lgrid_to)
 {
+#ifdef _DEBUG
     assert(lgrid_to != nullptr);
-
+#endif
     if (this->lgrid != nullptr)
         this->lgrid->lpiece = nullptr;
 
@@ -468,9 +469,9 @@ void Piece::makeMove(Grid *gridTo)
 
     board->resetHighligtedGrids();
     this->lpiece->makeMove(gridTo->lgrid);
-
+#ifdef _DEBUG
     assert ( !lpiece->lboard->currentMove->isNull() );
-
+#endif
     board->selected = nullptr;
     board->setPiecesSelectable(false);
 
@@ -542,9 +543,10 @@ void Piece::animateTo(Grid *gridTo, bool moveEnd)
 
 void Piece::select()
 {
+#ifdef _DEBUG
     assert( lpiece->inGame &&
             board->lboard->move == lpiece->isWhite && board->isPiecesSelectable() );
-
+#endif
     board->resetHighligtedGrids();
     vector<LGrid *> availMoves = lpiece->getGrids();
     board->selected = this;
