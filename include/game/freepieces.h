@@ -13,5 +13,5 @@ public:
     void update() const;
 private:
     Board *m_board;
-    vector<Piece *> *m_pieces;
+    QVector<Piece *> *m_pieces;
 };

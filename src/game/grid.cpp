@@ -23,9 +23,9 @@ QString LGrid::name() const
 bool LGrid::is_attacked(bool w)
 {
     LPiece* p_piece;
-    vector<LGrid *> grids;
+    QVector<LGrid *> grids;
 
-    vector<LPiece *> *pieces =
+    QVector<LPiece *> *pieces =
             w ? lboard->pieces_w
               : lboard->pieces_b;
     unsigned pieces_count = pieces->size();
@@ -48,11 +48,11 @@ bool LGrid::empty() const
     return lpiece == nullptr;
 }
 
-vector<LPiece *> LGrid::attackedBy(bool w)
+QVector<LPiece *> LGrid::attackedBy(bool w)
 {
-    vector<LPiece *> *pieces = w ? lboard->pieces_w : lboard->pieces_b;
-    vector<LGrid *> grids;
-    vector<LPiece *> result;
+    QVector<LPiece *> *pieces = w ? lboard->pieces_w : lboard->pieces_b;
+    QVector<LGrid *> grids;
+    QVector<LPiece *> result;
     for(LPiece *piece: *pieces)
     {
         if (!piece->inGame) continue;

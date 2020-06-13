@@ -148,7 +148,7 @@ bool LPiece::isMoved() const
     return moves > 0;
 }
 
-vector<LGrid *> LPiece::getGrids(bool getAttacked)
+QVector<LGrid *> LPiece::getGrids(bool getAttacked)
 {
     if (lboard->positionChanged) {
         gridsCached = false;
@@ -162,7 +162,7 @@ vector<LGrid *> LPiece::getGrids(bool getAttacked)
         }
     }
 
-    vector<LGrid *> moves;
+    QVector<LGrid *> moves;
 
     if (pieceBehavior[type].extra)
     {
@@ -548,14 +548,14 @@ void Piece::select()
             board->lboard->move == lpiece->isWhite && board->isPiecesSelectable() );
 #endif
     board->resetHighligtedGrids();
-    vector<LGrid *> availMoves = lpiece->getGrids();
+    QVector<LGrid *> availMoves = lpiece->getGrids();
     board->selected = this;
 
     grid->highlight();
 
     if ( availMoves.size() )
     {
-        for(unsigned i=0; i<availMoves.size(); i++)
+        for(int i=0; i<availMoves.size(); i++)
         {
             Grid::get(availMoves[i], board)->highlight(1);
         }

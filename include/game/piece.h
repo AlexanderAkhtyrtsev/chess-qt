@@ -44,7 +44,7 @@ const struct { bool extra, diagonal,  straight; }  pieceBehavior[7] = {
 };
 
 class LPiece {
-    vector<LGrid *> m_cachedGrids,
+    QVector<LGrid *> m_cachedGrids,
                     m_cachedAttackedGrids;
     bool gridsCached {false},
          attackedGridsCached {false};
@@ -71,7 +71,7 @@ public:
     bool isProtected() const;
     bool isMoved() const;
     void makeMove(LGrid *, bool fake = false);
-    vector<LGrid *> getGrids(bool attacked = false);
+    QVector<LGrid *> getGrids(bool attacked = false);
 };
 
 

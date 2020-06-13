@@ -26,17 +26,17 @@ Board::Board(QWidget* parent) : QGraphicsScene(parent)
     selected            = nullptr;
     m_reverse           = false;
     piecesSelectable    = true;
-    pieces              = new vector<Piece *>;
-    pieces_w            = new vector<Piece *>;
-    pieces_b            = new vector<Piece *>;
+    pieces              = new QVector<Piece *>;
+    pieces_w            = new QVector<Piece *>;
+    pieces_b            = new QVector<Piece *>;
     options             = new Options;
-    timersValue[0]       = stack<quint32>();
-    timersValue[1]       = stack<quint32>();
+    timersValue[0]       = QStack<quint32>();
+    timersValue[1]       = QStack<quint32>();
     aiThread            = new AIThread(this);
     QObject::connect(aiThread, SIGNAL(finished()), this, SLOT(computerMoveEnd()));
 
 
-    highlightedGrids = stack<Grid *>();
+    highlightedGrids = QStack<Grid *>();
 
     //options->flipBoard = true;
     // Board texture
@@ -61,7 +61,7 @@ Board::Board(QWidget* parent) : QGraphicsScene(parent)
     free_pieces[1] = new FreePieces(this); // white
 
     Piece *p_piece;
-    for(quint32 i=0; i<lboard->pieces->size(); i++) {
+    for(int i=0; i<lboard->pieces->size(); i++) {
         p_piece = new Piece(lboard->pieces->at(i), this);
         p_piece->grid = Grid::get(p_piece->lpiece->lgrid, this);
         pieces->push_back(p_piece);
@@ -142,8 +142,8 @@ void Board::newGame()
     this->setPiecesSelectable(true);
     lboard->moves->clear();
 
-    timersValue[0] = stack<quint32>();
-    timersValue[1] = stack<quint32>();
+    timersValue[0] = QStack<quint32>();
+    timersValue[1] = QStack<quint32>();
     reverse(false);
 
 
@@ -413,7 +413,7 @@ void Board::replaceElements()
                                 grid_size * ((m_reverse ? (j+1) : 8-j)) );
         }
     }
-    for(unsigned i=0; i<pieces->size(); i++)
+    for(int i=0; i<pieces->size(); i++)
     {
         Piece* f = pieces->at(i);
         if ( f->lpiece->inGame ) f->placeTo(f->grid);
@@ -509,7 +509,7 @@ void AIThread::run()
     int level = playerType == 1 ? 2 : playerType == 2 ? 3 : 4;
 
     //if (lboard->moves->size() < 11) level = 2;
-    vector<PieceMove> bestMoves = getBestMoves(lboard, level);
+    QVector<PieceMove> bestMoves = getBestMoves(lboard, level);
     PieceMove r_bestMove;
 
 
@@ -557,7 +557,7 @@ int AIThread::minimax(LBoard *lboard, int depth, int alpha, int beta)
         return lboard->getCurrentScore();
     }
 
-    vector<PieceMove> moves = lboard->getAllMoves();
+    QVector<PieceMove> moves = lboard->getAllMoves();
     for(PieceMove pieceMove : moves) {
         totalIterations++; // for iter per sec counting.
 
@@ -581,9 +581,9 @@ int AIThread::minimax(LBoard *lboard, int depth, int alpha, int beta)
 }
 
 
-vector<PieceMove> AIThread::getBestMoves(LBoard *lboard, int depth)
+QVector<PieceMove> AIThread::getBestMoves(LBoard *lboard, int depth)
 {
-    vector<PieceMove> eqMoves,
+    QVector<PieceMove> eqMoves,
             moves = lboard->getAllMoves();
     if (this->isInterruptionRequested())
     {
@@ -664,10 +664,10 @@ const int LBoard::initPiecePos[8][8] = {
 
 LBoard::LBoard() {
     move                = true; // true - white
-    pieces              = new vector<LPiece     *>;
-    pieces_w            = new vector<LPiece     *>;
-    pieces_b            = new vector<LPiece     *>;
-    moves               = new vector<PieceMove *>;
+    pieces              = new QVector<LPiece     *>;
+    pieces_w            = new QVector<LPiece     *>;
+    pieces_b            = new QVector<LPiece     *>;
+    moves               = new QVector<PieceMove *>;
     currentMove         = nullptr;
 
     LPiece *p_piece;
@@ -691,10 +691,10 @@ LBoard::LBoard() {
 LBoard::LBoard(const LBoard &origBoard)
 {
     move                = true; // true - white
-    pieces              = new vector<LPiece     *>;
-    pieces_w            = new vector<LPiece     *>;
-    pieces_b            = new vector<LPiece     *>;
-    moves               = new vector<PieceMove *>;
+    pieces              = new QVector<LPiece     *>;
+    pieces_w            = new QVector<LPiece     *>;
+    pieces_b            = new QVector<LPiece     *>;
+    moves               = new QVector<PieceMove *>;
     currentMove         = nullptr;
 
     LPiece *p_piece;
@@ -754,7 +754,7 @@ LGrid *LBoard::grid(int x, int y) const
 
 LPiece *LBoard::piece(int index) const
 {
-    if (quint32(index) >= this->pieces->size() ) return nullptr;
+    if (index >= this->pieces->size() ) return nullptr;
     return this->pieces->at(quint32(index));
 }
 
@@ -768,12 +768,12 @@ LPiece *LBoard::piece(int index) const
 int LBoard::check_game() const
 {
     int game_over = 2; // 0 - the game isn't over; 1 - check mate; 2 - draw;
-    vector<LPiece *> *pieces = move ? pieces_w : pieces_b;
+    QVector<LPiece *> *pieces = move ? pieces_w : pieces_b;
     LPiece *temp;
 
     // Checkig for possible moves
     // IF not possible moves is mean draw
-    for(unsigned i = 0; i < pieces->size(); i++)
+    for(int i = 0; i < pieces->size(); i++)
     {
         temp = pieces->at(i);
         if ( temp->inGame && temp->getGrids().size() > 0 )
@@ -913,15 +913,15 @@ int LBoard::getPiecePosEval(LPiece *piece) const
 }
 
 
-vector<PieceMove> LBoard::getAllMoves() const
+QVector<PieceMove> LBoard::getAllMoves() const
 {
-    vector<PieceMove> result;
-    vector<LPiece *> availPieces, *currentPieces = (this->move ? pieces_w : pieces_b);
+    QVector<PieceMove> result;
+    QVector<LPiece *> availPieces, *currentPieces = (this->move ? pieces_w : pieces_b);
 
     for (LPiece *piece : *currentPieces) {
         if(piece->inGame) {
             availPieces.push_back(piece);
-            vector<LGrid*> moves = piece->getGrids();
+            QVector<LGrid*> moves = piece->getGrids();
             for(LGrid *g : moves) {
                 result.push_back(PieceMove(piece, piece->lgrid, g));
             }

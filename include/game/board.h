@@ -1,8 +1,8 @@
 #pragma once
 
 #include <QtWidgets>
-#include <vector>
-#include <stack>
+#include <QVector>
+#include <QStack>
 #include <algorithm>
 #include "gametimer.h"
 
@@ -15,8 +15,6 @@ const int MIN_SCORE = -999999;
 const int MAX_SCORE =  999999;
 const int MIN_GRID_SIZE = 24;
 
-using std::vector;
-using std::stack;
 
 class Piece;
 class Grid;
@@ -33,9 +31,9 @@ class LBoard {
 public:
     static const int initPiecePos[8][8];
     LGrid *grids[8][8];
-    vector<PieceMove *> *moves;
+    QVector<PieceMove *> *moves;
     PieceMove *currentMove;
-    vector<LPiece *> *pieces, *pieces_w, *pieces_b;
+    QVector<LPiece *> *pieces, *pieces_w, *pieces_b;
     LPiece *King[2];
     bool move;
     bool positionChanged {true};
@@ -50,7 +48,7 @@ public:
     int check_game() const;
     void undoMove();
 
-    vector<PieceMove> getAllMoves() const;
+    QVector<PieceMove> getAllMoves() const;
     int getCurrentScore() ;
     int getPiecePosEval(LPiece *piece) const;
 };
@@ -93,7 +91,7 @@ public:
     GameTimer *timer[2];
     QSize size;
 
-    std::stack<Grid *> highlightedGrids;
+    QStack<Grid *> highlightedGrids;
 
     Board(QWidget* = nullptr);
     ~Board();
@@ -106,9 +104,9 @@ public:
     QPixmap *piecesTileset;
     int grid_size;
     Grid* grids[8][8];
-    vector<Piece *> *pieces;
-    stack<quint32> timersValue[2];
-    vector<Piece *> *pieces_w, *pieces_b;
+    QVector<Piece *> *pieces;
+    QStack<quint32> timersValue[2];
+    QVector<Piece *> *pieces_w, *pieces_b;
     Piece *selected, *King[2];
     FreePieces *free_pieces[2];
     MainWindow *window;
@@ -139,7 +137,7 @@ public:
                 int depth,
                 int alpha = MIN_SCORE,
                 int beta = MAX_SCORE);
-    vector<PieceMove> getBestMoves(LBoard *lboard, int depth);
+    QVector<PieceMove> getBestMoves(LBoard *lboard, int depth);
     bool isInterrupted() const;
     void setInterrupted(bool value);
 };

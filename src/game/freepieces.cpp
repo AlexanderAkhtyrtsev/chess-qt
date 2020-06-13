@@ -3,7 +3,7 @@
 FreePieces::FreePieces(Board *brd)
 {
     m_board = brd;
-    m_pieces = new vector<Piece *>;
+    m_pieces = new QVector<Piece *>;
 }
 
 FreePieces::~FreePieces()
@@ -39,7 +39,7 @@ Piece *FreePieces::addPiece(Piece *piece)
 
 Piece *FreePieces::removePiece(Piece *piece)
 {
-    /*vector<Piece *>::iterator i*/
+    /*QVector<Piece *>::iterator i*/
     auto i = std::find(m_pieces->begin(), m_pieces->end(), piece);
     if ( i != m_pieces->end() ) m_pieces->erase(i);
     return piece;
