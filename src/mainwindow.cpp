@@ -79,7 +79,6 @@ Options::Options()
 int main(int argc, char *argv[])
 {
     // initialize random
-    qsrand(static_cast<quint32>(time(nullptr)));
     QApplication a(argc, argv);
     MainWindow w;
     w.show();
@@ -103,8 +102,8 @@ MenuWidget::MenuWidget(MainWindow *mainWindow)
     int dx = pix->width()/6,
         dy = pix->height()/2;
 
-    qsrand(time(0));
-    int r = qrand() % 5;
+    QRandomGenerator randomGenerator(time(0));
+    int r = randomGenerator.generate() & std::numeric_limits<int>::max() % 5;
 
     QPixmap pixCopy = pix->copy(r * dx,0, dx, dy);
     auto pixHeight = rect().size().height()/5;

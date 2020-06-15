@@ -512,15 +512,16 @@ void AIThread::run()
     QVector<PieceMove> bestMoves = getBestMoves(lboard, level);
     PieceMove r_bestMove;
 
+    QRandomGenerator randomGenerator(time(0));
 
     if (bestMoves.size()) {
-        unsigned int r = (static_cast<unsigned int>(qrand()) % bestMoves.size());
+        unsigned int r = (randomGenerator.generate() & std::numeric_limits<unsigned>::max() % bestMoves.size());
         r_bestMove = bestMoves.size() > 1 ? bestMoves[r] : bestMoves[0];
         qDebug() << "(random from" << bestMoves.size() << "best moves)";
     }
 
     else if (r_bestMove.isNull() && bestMoves.size()) {
-        unsigned int r = (static_cast<unsigned int>(qrand()) % bestMoves.size());
+        unsigned int r = (randomGenerator.generate() & std::numeric_limits<unsigned>::max() % bestMoves.size());
         r_bestMove = bestMoves[r];
         qDebug() << "(random from ALL moves)";
     }
@@ -538,7 +539,7 @@ void AIThread::run()
 
     delete lboard;
     if (timer.elapsed() < 1000) {
-        QThread::sleep(qrand()%3+1);
+        QThread::sleep(randomGenerator.generate() & std::numeric_limits<unsigned>::max() % 5 + 1);
     }
 }
 
