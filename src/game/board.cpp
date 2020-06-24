@@ -203,11 +203,10 @@ void Board::undoMove()
     if (!lboard->moves->size()) {
         return;
     }
-
+    // Check if AI is running
     if (aiThread->isRunning()) {
         aiThread->requestInterruption();
     }
-
 
     if (m_endGame) {
         this->setPiecesSelectable(true);
@@ -223,7 +222,10 @@ void Board::undoMove()
     {
         this->setPiecesSelectable(true);
         piece->stopAnimation();
-        piece->placeTo(Grid::get(last->from, this));
+
+        Grid *offset_grid, *grid_from = Grid::get(last->from, this);
+        piece->animateTo(grid_from);
+        piece->placeTo(grid_from, false);
 
         // Castling
         if (last->extra && piece->lpiece->type == LPiece::King)
@@ -232,15 +234,19 @@ void Board::undoMove()
             if (piece->grid->lgrid->offset(2, 0) == last->to)
             {
                 rook = piece->grid->offset(1, 0)->piece;
+                offset_grid = rook->grid->offset(2, 0);
                 rook->stopAnimation();
-                rook->placeTo(rook->grid->offset(2, 0));
+                rook->animateTo(offset_grid);
+                rook->placeTo(offset_grid, false);
             }
 
             else //if (piece->grid->lgrid->offset(-2, 0) == last->to)
             {
                 rook = piece->grid->offset(-1, 0)->piece;
+                offset_grid = rook->grid->offset(-3, 0);
                 rook->stopAnimation();
-                rook->placeTo(rook->grid->offset(-3, 0));
+                rook->animateTo(offset_grid);
+                rook->placeTo(offset_grid, false);
             }
         }
 
@@ -257,27 +263,35 @@ void Board::undoMove()
                   Grid::get(last->extra && last->removed->type == LPiece::Pawn ?
                         last->to->offset(0, last->removed->isWhite ? 1 : -1)
                               : last->to, this);
-            removed->placeTo(prevPos_grid);
+            removed->animateTo(prevPos_grid);
+            removed->placeTo(prevPos_grid, false);
         }
 
         // Castling
         if (last->extra && piece->lpiece->type == LPiece::King)
         {
             Piece *rook;
+            Grid *g_offset;
             // Short
             if (piece->grid->lgrid->offset(-2, 0) == last->from)
             {
                 rook = piece->grid->offset(-1, 0)->piece;
-                rook->placeTo(rook->grid->offset(2,0));
+                g_offset = rook->grid->offset(2,0);
+                rook->animateTo(g_offset);
+                rook->placeTo(g_offset, false);
             }
             // Long
             else //if (piece->grid->lgrid->offset(-2, 0) == last->to)
             {
                 rook = piece->grid->offset(1, 0)->piece;
-                rook->placeTo(rook->grid->offset(-3,0));
+                g_offset = rook->grid->offset(-3, 0);
+                rook->animateTo(g_offset);
+                rook->placeTo(g_offset, false);
             }
         }
-        piece->placeTo(Grid::get(last->from, this));
+        Grid *g_from = Grid::get(last->from, this);
+        piece->animateTo(g_from);
+        piece->placeTo(g_from, false);
 
         this->timer[lboard->move]->stop()->setTime(!timersValue[lboard->move].empty() ? timersValue[lboard->move].top() : 0);
         timersValue[lboard->move].pop();
@@ -539,7 +553,7 @@ void AIThread::run()
 
     delete lboard;
     if (timer.elapsed() < 1000) {
-        QThread::sleep(randomGenerator.generate() & std::numeric_limits<unsigned>::max() % 5 + 1);
+        QThread::sleep((randomGenerator.generate() & std::numeric_limits<unsigned>::max()) % 5 + 1);
     }
 }
 

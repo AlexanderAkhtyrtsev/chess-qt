@@ -529,7 +529,6 @@ void Piece::moveEnd()
 
 void Piece::animateTo(Grid *gridTo, bool moveEnd)
 {
-
     if (moveEnd){
         QObject::connect(anim, SIGNAL(finished()), SLOT(moveEnd()));
     }
@@ -539,6 +538,7 @@ void Piece::animateTo(Grid *gridTo, bool moveEnd)
     anim->setEndValue(gridTo->pos());
     anim->setEasingCurve(QEasingCurve::InOutCubic);
     anim->start();
+
 }
 
 void Piece::select()

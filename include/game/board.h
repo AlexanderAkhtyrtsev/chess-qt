@@ -96,8 +96,7 @@ public:
     Board(QWidget* = nullptr);
     ~Board();
 
-    void replaceElements();
-    void undoMove();
+
     Board *resetHighligtedGrids();
     bool reverse() const; // getter
     bool reverse(bool reverse);     // setter
@@ -115,6 +114,8 @@ public:
     void computerMove();
     bool isPiecesSelectable() const;
     void setPiecesSelectable(bool value);
+    void replaceElements();
+    void undoMove();
 public slots:
     void computerMoveEnd();
     void newGame();
