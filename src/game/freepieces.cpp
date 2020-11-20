@@ -19,6 +19,7 @@ Piece *FreePieces::addPiece(Piece *piece)
         m_pieces->push_back(piece);
     } else {
         bool samePieceFound = false;
+
         for(unsigned i=0; i<sz; i++) {
             if(m_pieces->at(i)->lpiece->type == piece->lpiece->type) {
                 m_pieces->insert(m_pieces->begin()+i+1, piece);
@@ -31,6 +32,7 @@ Piece *FreePieces::addPiece(Piece *piece)
             m_pieces->push_back(piece);
         }
     }
+
     update();
     return piece;
 }
@@ -41,7 +43,11 @@ Piece *FreePieces::removePiece(Piece *piece)
 {
     /*QVector<Piece *>::iterator i*/
     auto i = std::find(m_pieces->begin(), m_pieces->end(), piece);
-    if ( i != m_pieces->end() ) m_pieces->erase(i);
+
+    if ( i != m_pieces->end() ) {
+        m_pieces->erase(i);
+    }
+
     return piece;
 }
 
@@ -60,13 +66,17 @@ void FreePieces::update() const
     for(unsigned i = 0; i < sz; i++)
     {
         piece = m_pieces->at(i);
+
         int top = 0,
-         bottom = 9;
-        int y = m_board->reverse() ? (piece->lpiece->isWhite ? bottom : top) :
-                                     (piece->lpiece->isWhite ? top : bottom);
+            bottom = 9;
+
+        int y = m_board->reverse() ? (piece->lpiece->isWhite ? bottom : top)
+                                   : (piece->lpiece->isWhite ? top : bottom);
+
         if ( i > 0 && piece->lpiece->type != m_pieces->at(i-1)->lpiece->type ) {
-            empty+=2;
+            empty += 2;
         }
+
         piece->setPos( (empty + i) * (m_board->grid_size) / 3.5,
                        y * m_board->grid_size );
     }

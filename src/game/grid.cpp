@@ -7,11 +7,13 @@ LGrid::LGrid(int _x, int _y, LBoard *_board) : x(_x), y(_y), lboard(_board)
 
 LGrid *LGrid::offset(int dx, int dy)
 {
-    int xn = x+dx;
-    int yn = y+dy;
+    int xn = x + dx,
+        yn = y + dy;
+
     if ( xn < 0 || xn > 7 || yn < 0 || yn > 7) {
         return nullptr;
     }
+
     return lboard->grids[xn][yn];
 }
 
@@ -28,16 +30,23 @@ bool LGrid::is_attacked(bool w)
     QVector<LPiece *> *pieces =
             w ? lboard->pieces_w
               : lboard->pieces_b;
+
     unsigned pieces_count = pieces->size();
+
     for(unsigned i = 0; i < pieces_count; i++)
     {
          p_piece = pieces->at(i);
-         if( !p_piece->inGame ) continue;
+         if( !p_piece->inGame ) {
+             continue;
+         }
+
+         // RECURSION HERE
          grids = p_piece->getGrids(true);
          if ( std::find(grids.begin(), grids.end(), this) != grids.end() ) {
              return true;
          }
     }
+
     return false;
 }
 
@@ -53,15 +62,19 @@ QVector<LPiece *> LGrid::attackedBy(bool w)
     QVector<LPiece *> *pieces = w ? lboard->pieces_w : lboard->pieces_b;
     QVector<LGrid *> grids;
     QVector<LPiece *> result;
+
     for(LPiece *piece: *pieces)
     {
-        if (!piece->inGame) continue;
+        if (!piece->inGame) {
+            continue;
+        }
+
         grids = piece->getGrids(true);
-        if ( std::find(grids.begin(), grids.end(), this) != grids.end() )
-        {
+        if ( std::find(grids.begin(), grids.end(), this) != grids.end() ) {
             result.push_back(piece);
         }
     }
+
     return result;
 }
 
@@ -90,7 +103,7 @@ void Grid::highlight(int lightType)
     board->highlightedGrids.push(this);
 
     light = lightType;
-    update(0, 0, board->grid_size,board->grid_size); // repaint
+    this->update(0, 0, board->grid_size,board->grid_size); // repaint
 }
 
 Grid::operator LGrid() const
@@ -102,15 +115,20 @@ Grid *Grid::offset(int dx, int dy) const
 {
     int xn = lgrid->x+dx,
         yn = lgrid->y+dy;
+
     if ( xn < 0 || xn > 7 || yn < 0 || yn > 7) {
         return nullptr;
     }
+
     return board->grids[xn][yn];
 }
 
 Grid *Grid::get(LGrid *l_grid, Board *board)
 {
-    if (!l_grid) return nullptr;
+    if (!l_grid) {
+        return nullptr;
+    }
+
     return board->grids [l_grid->x][l_grid->y];
 }
 
@@ -123,29 +141,29 @@ QRectF Grid::boundingRect() const
 void Grid::paint(QPainter *painter, const QStyleOptionGraphicsItem*, QWidget*)
 {
 
-    if (light)
-    {
+    if (light) {
         painter->save();
         painter->setRenderHint(QPainter::Antialiasing, true);
         painter->setOpacity(0.8);
-         int p =  static_cast<int>(board->grid_size * 0.05);
+
+        int p = static_cast<int>(board->grid_size * 0.05);
 
         QRect rect(p, p, board->grid_size-p*2, board->grid_size-p*2);
 
         QColor color;
         switch (light) {
-        case 1:
-            color =  (lgrid->lpiece && lgrid->lpiece->isWhite != board->lboard->move ) ? Qt::red : Qt::green;
-            break;
-        case 2:
-            color = Qt::red;
-            break;
-        case 3:
-            color = Qt::darkBlue;
-            break;
-        case 4:
-            color = Qt::blue;
-            break;
+            case 1:
+                color =  (lgrid->lpiece && lgrid->lpiece->isWhite != board->lboard->move ) ? Qt::red : Qt::green;
+                break;
+            case 2:
+                color = Qt::red;
+                break;
+            case 3:
+                color = Qt::darkBlue;
+                break;
+            case 4:
+                color = Qt::blue;
+                break;
         };
 
         color.setAlpha(80);

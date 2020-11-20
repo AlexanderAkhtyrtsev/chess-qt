@@ -42,8 +42,10 @@ void LPiece::placeTo(LGrid *lgrid_to)
 #ifdef _DEBUG
     assert(lgrid_to != nullptr);
 #endif
-    if (this->lgrid != nullptr)
+
+    if (this->lgrid != nullptr){
         this->lgrid->lpiece = nullptr;
+    }
 
     this->lgrid = lgrid_to;
     this->lgrid->lpiece = this;
@@ -79,27 +81,22 @@ void LPiece::makeMove(LGrid *gridTo, bool fake)
     lboard->currentMove->fake = fake;
 
     // Castling
-    if (type == King)
-    {
-        if (lgrid->offset(2, 0) == lboard->currentMove->to)
-        {
+    if (type == King) {
+        if (lgrid->offset(2, 0) == lboard->currentMove->to) {
             LPiece *Rook = lgrid->offset(3, 0)->lpiece;
             Rook->placeTo(Rook->lgrid->offset(-2, 0));
             lboard->currentMove->extra = true;
-        }
-        else if (lgrid->offset(-2, 0) == lboard->currentMove->to)
-        {
+        } else if (lgrid->offset(-2, 0) == lboard->currentMove->to) {
             LPiece *Rook = lgrid->offset(-4, 0)->lpiece;
             Rook->placeTo(Rook->lgrid->offset(3, 0));
             lboard->currentMove->extra = true;
         }
     }
 
-    LPiece *rm = nullptr;
+    LPiece *pieceRemoved = nullptr;
 
     //Pawn's extra move
-    if (type == Pawn)
-    {
+    if (type == Pawn) {
         LGrid *g, *g2;
         LPiece *f;
         int up = isWhite ? 1 : -1,
@@ -115,17 +112,18 @@ void LPiece::makeMove(LGrid *gridTo, bool fake)
               f->isWhite != isWhite
               )
         {
-            (rm = f)->remove();
+            (pieceRemoved = f)->remove();
             lboard->currentMove->extra = true;
             break;
         }
     }
 
     if (!lboard->currentMove->to->empty()) {
-        (rm = lboard->currentMove->to->lpiece)->remove();
+        (pieceRemoved = lboard->currentMove->to->lpiece)->remove();
     }
-    if (rm) {
-        lboard->currentMove->removed = rm;
+
+    if (pieceRemoved) {
+        lboard->currentMove->removed = pieceRemoved;
     }
 
     this->placeTo(lboard->currentMove->to);
@@ -137,9 +135,11 @@ void LPiece::makeMove(LGrid *gridTo, bool fake)
 
     lboard->moves->push_back(lboard->currentMove);
     this->moves++;
+
     if (!fake) {
         lboard->positionChanged = true;
     }
+
     lboard->move = !lboard->move;
 }
 
@@ -165,16 +165,13 @@ QVector<LGrid *> LPiece::getGrids(bool getAttacked)
 
     QVector<LGrid *> moves;
 
-    if (pieceBehavior[type].extra)
-    {
+    if (pieceBehavior[type].extra) {
 
-        if (type == Pawn)
-        {
+        if (type == Pawn) {
 
             LGrid* g;
             int up = isWhite ? 1 : -1;
-            if ( !getAttacked )
-            {
+            if ( !getAttacked ) {
 
                 if ( (g=lgrid->offset(0, up)) !=nullptr && g->empty()
                      && isMoveValid(g))
@@ -185,7 +182,8 @@ QVector<LGrid *> LPiece::getGrids(bool getAttacked)
                 // first pos
                 if ( lgrid->y == (isWhite?1:6) &&
                      lgrid->offset(0, up)->empty() &&
-                     (g=lgrid->offset(0, up*2))->empty() && isMoveValid(g) ){
+                     (g=lgrid->offset(0, up*2))->empty() && isMoveValid(g) )
+                {
                     moves.push_back(g);
                 }
             }
@@ -233,33 +231,42 @@ QVector<LGrid *> LPiece::getGrids(bool getAttacked)
 
         else if(type == King)
         {
-            int mv[8][2] = {
+            const int mv[8][2] = {
               { 1,0}, { 1, 1}, {0, 1}, {-1, 1},
               {-1,0}, {-1,-1}, {0,-1}, { 1,-1}
             };
 
-            for(int i=0; i<8; i++)
-            {
+            for(int i=0; i<8; i++) {
                 LGrid* p_grid = lgrid->offset(mv[i][0], mv[i][1]);
-                if (!p_grid) continue;
-                if (getAttacked) {moves.push_back(p_grid); continue;}
-                if ( p_grid->empty() && (!getAttacked && !p_grid->is_attacked(!isWhite) && isMoveValid(p_grid)))
-                {
+                if (!p_grid) {
+                    continue;
+                }
+
+                if (getAttacked) {
+                    moves.push_back(p_grid);
+                    continue;
+                }
+
+                if ( p_grid->empty() && (!getAttacked && !p_grid->is_attacked(!isWhite) && isMoveValid(p_grid))) {
                     moves.push_back(p_grid);
                 }
 
-                else if ( (!p_grid->empty() && p_grid->lpiece->isWhite != isWhite && !p_grid->lpiece->isProtected() && isMoveValid(p_grid)) )
+                else if ( !p_grid->empty() &&
+                          p_grid->lpiece->isWhite != isWhite &&
+                          !p_grid->lpiece->isProtected() &&
+                          isMoveValid(p_grid)
+                          )
                 {
                     moves.push_back(p_grid);
                 }
             }
 
              // Castling
-            if ( !getAttacked && !isMoved() && !lboard->isCheck(isWhite) )
-            {
+            if ( !getAttacked && !isMoved() && !lboard->isCheck(isWhite) ) {
                 LPiece *Rook;
                 LGrid *grd;
-                int y = lgrid->y;
+                const int y = lgrid->y;
+
                 if ( !lboard->grids[0][y]->empty() &&
                      (Rook = lboard->grids[0][y]->lpiece)->type == LPiece::Rook &&
                      !Rook->isMoved() &&
@@ -270,6 +277,7 @@ QVector<LGrid *> LPiece::getGrids(bool getAttacked)
                 {
                     moves.push_back(lgrid->offset(-2, 0));
                 }
+
                 if ( !lboard->grids[7][y]->empty() &&
                      (Rook = lboard->grids[7][y]->lpiece)->type == LPiece::Rook &&
                      !Rook->isMoved() &&
@@ -284,9 +292,11 @@ QVector<LGrid *> LPiece::getGrids(bool getAttacked)
 
         else // Knight
         {
-            int offsets[8][2] = { {1,2}, {2,1}, {-1,2},  {-2, 1},{-1, -2}, {1, -2},{-2, -1}, {2, -1}};
+            // How horse moves :)
+            const int offsets[8][2] = { {1,2}, {2,1}, {-1,2},  {-2, 1},{-1, -2}, {1, -2},{-2, -1}, {2, -1}};
             for(int i=0; i<8; i++) {
                 LGrid* g = lgrid->offset(offsets[i][0], offsets[i][1]);
+
                 if(g && (getAttacked ||
                          ((g->empty() || g->lpiece->isWhite != isWhite) &&
                           isMoveValid(g))) )
@@ -296,123 +306,162 @@ QVector<LGrid *> LPiece::getGrids(bool getAttacked)
            }
         }
     }
-    else
-    {
 
-        if ( pieceBehavior[type].diagonal )
-        {
+    //Generic pieces' move
+    else {
+
+        if ( pieceBehavior[type].diagonal ) {
+
+
             // right & up
-            for(int x = lgrid->x+1, y = lgrid->y+1; x<8 && y < 8; x++, y++)
-            {
+            for(int x = lgrid->x+1, y = lgrid->y+1; x<8 && y < 8; x++, y++) {
                 LGrid* off = lgrid->offset(x-lgrid->x, y-lgrid->y);
-                if(!off->empty())
-                {
-                    if ( getAttacked || (off->lpiece->isWhite != isWhite && isMoveValid(off) ) )
-                      moves.push_back(off);
-                   break;
+
+                if(!off->empty()) {
+                    if ( getAttacked || (off->lpiece->isWhite != isWhite && isMoveValid(off) ) ){
+                        moves.push_back(off);
+                    }
+
+                    break;
                 }
-                if( getAttacked || isMoveValid(off)) moves.push_back(off);
+
+                if( getAttacked || isMoveValid(off)) {
+                    moves.push_back(off);
+                }
             }
 
             // left && down
-            for(int x = lgrid->x-1, y = lgrid->y-1; x>=0 && y >= 0; x--, y--)
-            {
+            for(int x = lgrid->x-1, y = lgrid->y-1; x>=0 && y >= 0; x--, y--){
 
                 LGrid* off = lgrid->offset(x-lgrid->x, y-lgrid->y);
-                if(!off->empty())
-                {
-                    if ( getAttacked || (off->lpiece->isWhite != isWhite && isMoveValid(off)) )
-                      moves.push_back(off);
-                   break;
+
+                if(!off->empty()) {
+                    if ( getAttacked || (off->lpiece->isWhite != isWhite && isMoveValid(off)) ){
+                        moves.push_back(off);
+                    }
+                    break;
                 }
-                if( getAttacked || isMoveValid(off)) moves.push_back(off);
+
+                if( getAttacked || isMoveValid(off)) {
+                    moves.push_back(off);
+                }
             }
+
             // up && left
-            for(int x = lgrid->x-1, y = lgrid->y+1; x>=0 && y < 8; x--, y++)
-            {
+            for(int x = lgrid->x-1, y = lgrid->y+1; x>=0 && y < 8; x--, y++) {
 
                 LGrid* off = lgrid->offset(x-lgrid->x, y-lgrid->y);
-                if(!off->empty())
-                {
-                    if ( getAttacked || (off->lpiece->isWhite != isWhite && isMoveValid(off)) )
-                      moves.push_back(off);
-                   break;
+                if(!off->empty()) {
+                    if ( getAttacked || (off->lpiece->isWhite != isWhite && isMoveValid(off)) ){
+                        moves.push_back(off);
+                    }
+
+                    break;
                 }
-                if( getAttacked || isMoveValid(off)) moves.push_back(off);
+
+                if( getAttacked || isMoveValid(off)) {
+                    moves.push_back(off);
+                }
             }
 
-            for(int x = lgrid->x+1, y = lgrid->y-1; x<8 && y >= 0; x++, y--)
-            {
-
+            for(int x = lgrid->x+1, y = lgrid->y-1; x<8 && y >= 0; x++, y--) {
                 LGrid* off = lgrid->offset(x-lgrid->x, y-lgrid->y);
-                if(!off->empty())
-                {
-                    if ( getAttacked || (off->lpiece->isWhite != isWhite && isMoveValid(off)) )
-                      moves.push_back(off);
-                   break;
+
+                if(!off->empty()) {
+                    if ( getAttacked || (off->lpiece->isWhite != isWhite && isMoveValid(off)) ){
+                        moves.push_back(off);
+                    }
+
+                    break;
                 }
-                if( getAttacked || isMoveValid(off)) moves.push_back(off);
+
+                if( getAttacked || isMoveValid(off)) {
+                    moves.push_back(off);
+                }
             }
 
 
         }
-        if ( pieceBehavior[type].straight )
-        {
+
+
+        if ( pieceBehavior[type].straight ) {
 
             // X
-            for(int i=1; i < 8-lgrid->x; i++) // right
-            {
+
+            // right
+            for(int i=1; i < 8-lgrid->x; i++){
                 LGrid* off = lgrid->offset(i, 0);
-                if(!off->empty())
-                {
-                    if ( getAttacked || (off->lpiece->isWhite != isWhite && isMoveValid(off) ) )
-                      moves.push_back(off);
-                   break;
+
+                if(!off->empty()) {
+                    if ( getAttacked || (off->lpiece->isWhite != isWhite && isMoveValid(off) ) ){
+                        moves.push_back(off);
+                    }
+
+                    break;
                 }
-                if( getAttacked || isMoveValid(off)) moves.push_back(off);
+
+                if( getAttacked || isMoveValid(off)) {
+                    moves.push_back(off);
+                }
             }
-            for(int i=lgrid->x-1; i>=0; i--) // left
-            {
+
+
+            // left
+            for(int i=lgrid->x-1; i>=0; i--){
                 LGrid* off = lgrid->offset(i-lgrid->x, 0);
-                if(!off->empty())
-                {
-                    if ( getAttacked || (off->lpiece->isWhite != isWhite && isMoveValid(off) ) )
-                      moves.push_back(off);
-                   break;
+
+                if(!off->empty()) {
+                    if ( getAttacked || (off->lpiece->isWhite != isWhite && isMoveValid(off) ) ){
+                        moves.push_back(off);
+                    }
+
+                    break;
                 }
-                if( getAttacked || isMoveValid(off)) moves.push_back(off);
+
+                if( getAttacked || isMoveValid(off)) {
+                    moves.push_back(off);
+                }
             }
 
             // Y
-            for(int i=1; i < 8-lgrid->y; i++) // top
-            {
 
+            // top
+            for(int i=1; i < 8-lgrid->y; i++)  {
                 LGrid* off = lgrid->offset(0, i);
-                if(!off->empty())
-                {
-                    if ( getAttacked || (off->lpiece->isWhite != isWhite && isMoveValid(off) ) )
-                      moves.push_back(off);
-                   break;
-                }
-                if( getAttacked || isMoveValid(off)) moves.push_back(off);
-            }
-            for(int i=lgrid->y-1; i >= 0; i--) // bottom
-            {
 
-                LGrid *off = lgrid->offset(0, i-lgrid->y);
-                if(!off->empty())
-                {
-                    if ( getAttacked || (off->lpiece->isWhite != isWhite && isMoveValid(off) ) )
-                      moves.push_back(off);
-                   break;
+                if(!off->empty()) {
+                    if ( getAttacked || (off->lpiece->isWhite != isWhite && isMoveValid(off) )) {
+                        moves.push_back(off);
+                    }
+                    break;
                 }
-                if( getAttacked || isMoveValid(off)) moves.push_back(off);
+
+                if( getAttacked || isMoveValid(off)) {
+                    moves.push_back(off);
+                }
+            }
+
+            // bottom
+            for(int i=lgrid->y-1; i >= 0; i--) {
+                LGrid *off = lgrid->offset(0, i-lgrid->y);
+
+                if(!off->empty()) {
+                    if ( getAttacked || (off->lpiece->isWhite != isWhite && isMoveValid(off) ) ){
+                        moves.push_back(off);
+                    }
+
+                    break;
+                }
+
+                if( getAttacked || isMoveValid(off)){
+                    moves.push_back(off);
+                }
             }
         }
     }
 
-    if (lboard->moves->size() && !lboard->moves->back()->fake) {
     // Caching moves
+    if (lboard->moves->size() && !lboard->moves->back()->fake) {
         if (getAttacked) {
             m_cachedAttackedGrids = moves;
             attackedGridsCached = true;
@@ -442,11 +491,17 @@ Piece::~Piece()
 void Piece::placeTo(Grid *grid_to, bool show)
 {
     this->lpiece->placeTo(grid_to->lgrid);
-    if (this->grid) this->grid->piece = nullptr;
+
+    if (this->grid) {
+        this->grid->piece = nullptr;
+    }
+
     this->grid = grid_to;
     this->grid->piece = this;
-    if (show)
-    this->setPos(grid->pos());
+
+    if (show){
+        this->setPos(grid->pos());
+    }
 }
 
 
@@ -480,17 +535,13 @@ void Piece::makeMove(Grid *gridTo)
     this->animateTo(gridTo, true);
 
     // Castling
-    if ( lpiece->lboard->currentMove->extra && lpiece->type == LPiece::King)
-    {
-        if (grid->offset(2, 0)->lgrid == lpiece->lboard->currentMove->to)
-        {
+    if ( lpiece->lboard->currentMove->extra && lpiece->type == LPiece::King) {
+        if (grid->offset(2, 0)->lgrid == lpiece->lboard->currentMove->to) {
             Piece *Rook = grid->offset(3, 0)->piece;
             Grid *g = Rook->grid->offset(-2, 0);
             Rook->animateTo(g);
             Rook->placeTo(g, false);
-        }
-        else if (grid->offset(-2, 0)->lgrid == lpiece->lboard->currentMove->to)
-        {
+        } else if (grid->offset(-2, 0)->lgrid == lpiece->lboard->currentMove->to) {
             Piece *Rook = grid->offset(-4, 0)->piece;
             Grid *g = Rook->grid->offset(3, 0);
             Rook->animateTo(g);
@@ -499,9 +550,7 @@ void Piece::makeMove(Grid *gridTo)
 
     }
 
-
-    board->timersValue[!board->lboard->move]
-            .push(board->timer[!board->lboard->move]->time());
+    board->timersValue[!board->lboard->move].push(board->timer[!board->lboard->move]->time());
     board->timer[!board->lboard->move]->stop();
     board->timer[board->lboard->move]->start();
 }
@@ -509,11 +558,14 @@ void Piece::makeMove(Grid *gridTo)
 void Piece::moveEnd()
 {
     // this one just fixes SIGSEGV
-    if (lpiece->lboard->currentMove == nullptr) return;
+    if (lpiece->lboard->currentMove == nullptr) {
+        return;
+    }
 
     if (lpiece->lboard->currentMove->removed) {
         Piece::get(lpiece->lboard->currentMove->removed, board)->remove();
     }
+
     this->placeTo(Grid::get(lpiece->lboard->currentMove->to, board));
 
     board->resetHighligtedGrids();
@@ -533,8 +585,10 @@ void Piece::animateTo(Grid *gridTo, bool moveEnd)
     if (moveEnd){
         QObject::connect(anim, SIGNAL(finished()), SLOT(moveEnd()));
     }
+
     anim->setDuration(qMax(600, qMax(qAbs(grid->lgrid->x - gridTo->lgrid->x),
                                qAbs(grid->lgrid->y - gridTo->lgrid->y)) * 200));
+
     anim->setStartValue(this->grid->pos());
     anim->setEndValue(gridTo->pos());
     anim->setEasingCurve(QEasingCurve::InOutCubic);
@@ -554,10 +608,8 @@ void Piece::select()
 
     grid->highlight();
 
-    if ( availMoves.size() )
-    {
-        for(int i=0; i<availMoves.size(); i++)
-        {
+    if (availMoves.size()) {
+        for(int i=0; i<availMoves.size(); i++) {
             Grid::get(availMoves[i], board)->highlight(1);
         }
     }
@@ -576,6 +628,7 @@ Piece *Piece::get(LPiece *lp, Board *board)
 #endif
         return nullptr;
     }
+
     return board->pieces->at(quint32(lp->index));
 }
 
@@ -590,10 +643,10 @@ void Piece::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *
     QPixmap pieceTile = board->piecesTileset->scaled(board->grid_size * 6, board->grid_size * 2);
 
     painter->save();
-        painter->drawPixmap(0, 0, pieceTile,
+    painter->drawPixmap(0, 0, pieceTile,
                            (lpiece->type-1) * board->grid_size, lpiece->isWhite ? 0 : board->grid_size,
                            board->grid_size*1, board->grid_size);
-        painter->restore();
+    painter->restore();
 }
 
 bool Piece::isAnimationRunning() const
@@ -614,5 +667,6 @@ void Piece::mousePressEvent(QGraphicsSceneMouseEvent *pe)
          board->lboard->move == lpiece->isWhite && board->isPiecesSelectable()){
         this->select();
     }
+
     QGraphicsItem::mousePressEvent(pe);
 }

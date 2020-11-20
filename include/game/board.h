@@ -4,15 +4,14 @@
 #include <QVector>
 #include <QStack>
 #include <algorithm>
-#include "gametimer.h"
 
 
 #ifdef _DEBUG
 #include <cassert>
 #endif
 
-const int MIN_SCORE = -999999;
-const int MAX_SCORE =  999999;
+const int MIN_SCORE =  INT_MIN;
+const int MAX_SCORE =  INT_MAX;
 const int MIN_GRID_SIZE = 24;
 
 
@@ -26,6 +25,7 @@ class AIThread;
 class PieceMove;
 class LGrid;
 class LPiece;
+class GameTimer;
 
 class LBoard {
 public:

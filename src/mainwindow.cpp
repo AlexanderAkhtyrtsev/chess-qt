@@ -46,22 +46,28 @@ void MainWindow::resizeEvent(QResizeEvent *pe)
 void MainWindow::keyPressEvent(QKeyEvent *pe)
 {
     auto board = view->board;
-    switch (pe->key())
-    {
-    case Qt::Key_Backspace:
-    case Qt::Key_Back:
-        board->undoMove();
+
+    switch (pe->key()) {
+        case Qt::Key_Backspace:
+        case Qt::Key_Back:
+            board->undoMove();
+            break;
+
+        case Qt::Key_Space:
+            board->reverse( !board->reverse() );
         break;
-    case Qt::Key_Space:
-        board->reverse( !board->reverse() );
-    break;
-    case Qt::Key_A:
-        board->doAutoMove();
-        break;
-    case Qt::Key_T: test();
-        break;
-    case Qt::Key_N: board->newGame();
-        break;
+
+        case Qt::Key_A:
+            board->doAutoMove();
+            break;
+
+        case Qt::Key_T:
+            test();
+            break;
+
+        case Qt::Key_N:
+            board->newGame();
+            break;
     }
 
     pe->accept();

@@ -95,8 +95,7 @@ Board::Board(QWidget* parent) : QGraphicsScene(parent)
 
 Board::~Board()
 {
-    for(Piece *p: *this->pieces)
-    {
+    for(Piece *p: *this->pieces) {
         delete p;
     }
 
@@ -108,6 +107,7 @@ Board::~Board()
             delete this->grids[i][j];
         }
     }
+
     delete aiThread;
     delete options;
     delete pieces  ;
@@ -361,8 +361,11 @@ Board *Board::resetHighligtedGrids()
         this->highlightedGrids.pop();
     }
 
-    if ( lboard->isCheck(0) ) King[0]->grid->highlight(2);
-    else if ( lboard->isCheck(1) ) King[1]->grid->highlight(2);
+    if ( lboard->isCheck(0) ) {
+        King[0]->grid->highlight(2);
+    } else if ( lboard->isCheck(1) ){
+        King[1]->grid->highlight(2);
+    }
 
     return this;
 }
@@ -429,6 +432,7 @@ void Board::replaceElements()
                                 grid_size * ((m_reverse ? (j+1) : 8-j)) );
         }
     }
+
     for(int i=0; i<pieces->size(); i++)
     {
         Piece* f = pieces->at(i);
@@ -536,6 +540,7 @@ LBoard::LBoard() {
             (p_piece->isWhite ? pieces_w : pieces_b)->push_back(p_piece);
         }
     }
+
     King[1] = pieces->at(4);
     King[0] = pieces->at(28);
 }
@@ -566,6 +571,7 @@ LBoard::LBoard(const LBoard &origBoard)
             (p_piece->isWhite ? pieces_w : pieces_b)->push_back(p_piece);
         }
     }
+
     King[1] = pieces->at(4);
     King[0] = pieces->at(28);
 
@@ -580,32 +586,41 @@ LBoard::LBoard(const LBoard &origBoard)
 
 LBoard::~LBoard()
 {
-    for(LPiece *p: *this->pieces)
-    {
+    for(LPiece *p: *this->pieces) {
         delete p;
     }
+
     for(quint32 i=0; i<8; i++){
         for(quint32 j=0; j<8; j++){
             delete this->grids[i][j];
         }
     }
+
     for(PieceMove *pm: *this->moves){
         delete pm;
     }
+
     delete pieces_b;
     delete pieces_w;
     delete pieces;
 }
 
+// TODO ASSERT
 LGrid *LBoard::grid(int x, int y) const
 {
-    if (x < 0 || x > 7 || y < 0 || y > 7) return nullptr;
+    if (x < 0 || x > 7 || y < 0 || y > 7) {
+
+        return nullptr;
+    }
     return this->grids[x][y];
 }
 
 LPiece *LBoard::piece(int index) const
 {
-    if (index >= this->pieces->size() ) return nullptr;
+    if (index >= this->pieces->size() ){
+        return nullptr;
+    }
+
     return this->pieces->at(quint32(index));
 }
 
@@ -618,7 +633,8 @@ LPiece *LBoard::piece(int index) const
 
 int LBoard::check_game() const
 {
-    int game_over = 2; // 0 - the game isn't over; 1 - check mate; 2 - draw;
+    // 0 - the game isn't over; 1 - check mate; 2 - draw;
+    int game_over = 2;
     QVector<LPiece *> *pieces = move ? pieces_w : pieces_b;
     LPiece *temp;
 
@@ -643,8 +659,7 @@ int LBoard::check_game() const
                     qDebug() << "Check mate!";
 #endif
         }
-    }
-    else {
+    } else {
         // Check for repeating moves
         auto movesCount = this->moves->size();
         if (!game_over && movesCount > 6)
@@ -664,9 +679,13 @@ int LBoard::check_game() const
     return game_over;
 }
 
+
 void LBoard::undoMove()
 {
-    if (!moves->size()) return;
+    if (!moves->size()) {
+        return;
+    }
+
     PieceMove *last = moves->back();
 
     if (last->extra)
@@ -696,10 +715,11 @@ void LBoard::undoMove()
     if ( last->removed )
     {
         last->removed->inGame = true;
+
         if (last->extra && last->removed->type == LPiece::Pawn){
-            last->removed->placeTo(last->to->offset(0, last->removed->isWhite ? 1 : -1));
-        }
-        else {
+            const auto offset = last->to->offset(0, last->removed->isWhite ? 1 : -1);
+            last->removed->placeTo(offset);
+        } else {
             last->removed->placeTo(last->to);
         }
     }
@@ -707,6 +727,8 @@ void LBoard::undoMove()
     if (!last->fake) {
         positionChanged = true;
     }
+
+    // TODO ???
     last->lpiece->moves--;
     moves->erase( moves->end() - 1 );
     delete last;
@@ -735,7 +757,9 @@ int LBoard::getCurrentScore()
 
     if (gameState == 1) {
         return this->move ? MIN_SCORE : MAX_SCORE;
-    } else if (gameState == 2){
+    }
+
+    if (gameState == 2){
         return !this->move ? MIN_SCORE : MAX_SCORE;
     }
 

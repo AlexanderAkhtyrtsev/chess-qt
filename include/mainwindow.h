@@ -3,6 +3,7 @@
 #include "board.h"
 #include "graphicsview.h"
 #include "dialogs.h"
+#include "gametimer.h"
 
 class MenuWidget;
 
@@ -31,8 +32,17 @@ protected:
 class Options {
 public:
     Options();
+
     bool flipBoard;
-    enum  PlayerType {Human, AI_Stupid = 1, AI_Medium, AI_Hard, AI_VeryHard};
+
+    enum  PlayerType {
+        Human,
+        AI_Stupid = 1,
+        AI_Medium,
+        AI_Hard,
+        AI_VeryHard
+    };
+
     PlayerType player[2];
 };
 
@@ -43,6 +53,7 @@ class MenuWidget : public QWidget{
 public:
     MenuWidget(MainWindow * = 0);
     ~MenuWidget();
+
 private:
     QVBoxLayout *vbl_menu;
     QLabel *lbl_image;

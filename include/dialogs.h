@@ -3,6 +3,8 @@
 
 class ListSelect;
 class MainWindow;
+
+
 class NewGameDialog : public QWidget
 {
     Q_OBJECT

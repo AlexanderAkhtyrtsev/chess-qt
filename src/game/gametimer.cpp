@@ -9,11 +9,12 @@ GameTimer::GameTimer(Board *brd, QWidget *parent) : QLabel(parent)
     timer = new QTimer;
     timer->setInterval(1000);
     QObject::connect(timer, SIGNAL(timeout()), SLOT(tick()));
-    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Maximum);
-    setMargin(0);
 
-    setAttribute(Qt::WA_TranslucentBackground);
-    resize(128,32);
+    this->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Maximum);
+    this->setMargin(0);
+    this->setAttribute(Qt::WA_TranslucentBackground);
+    this->resize(128, 32);
+
     this->setText("--:--");
 }
 

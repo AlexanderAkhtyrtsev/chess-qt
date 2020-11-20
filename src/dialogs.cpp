@@ -42,13 +42,14 @@ ListSelect::ListSelect(QString header, QStringList list_options, QWidget *parent
     lbl_header->setStyleSheet("border:none;border-right:2px solid gray;");
     lbl_header->setAlignment(Qt::AlignRight|Qt::AlignVCenter);
     list_selections = new QList<QPushButton *>;
-    for(auto str : list_options)
-    {
+
+    for(auto str : list_options) {
         QPushButton *btn = new QPushButton(str, this);
         list_selections->append(btn);
         vbl->addWidget(btn);
         QObject::connect(btn, SIGNAL(clicked()), this, SLOT(select()));
     }
+
     setStyleSheet("QLabel, QPushButton {color: #666; text-align:left; border: none; font-size: 18pt;}");
 
     vbl->setAlignment(Qt::AlignLeft);
@@ -68,11 +69,16 @@ ListSelect::~ListSelect()
 
 void ListSelect::select(QPushButton *btn)
 {
-    if (btn == optionSelected) return;
+    if (btn == optionSelected){
+        return;
+    }
+
     optionSelected = btn;
+
     for(auto i: *list_selections) {
         i->setStyleSheet("color: #666; border: none; font-size: 18pt;");
     }
+
     btn->setStyleSheet("color: black; border: none; font-size: 18pt;");
 }
 
@@ -86,10 +92,14 @@ void ListSelect::select()
 unsigned ListSelect::selected()
 {
     unsigned i=0;
-    for(auto it: *list_selections)
-    {
-        if (it == optionSelected) break;
+
+    for(auto it: *list_selections) {
+        if (it == optionSelected) {
+            break;
+        }
+
         i++;
     }
+
     return i;
 }
