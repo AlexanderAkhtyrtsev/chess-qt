@@ -1,5 +1,6 @@
 #include "piece.h"
 #include "freepieces.h"
+#include "piecemove.h"
 
 
 LPiece::LPiece(LPiece::Type pieceType,

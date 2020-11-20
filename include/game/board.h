@@ -53,27 +53,6 @@ public:
     int getPiecePosEval(LPiece *piece) const;
 };
 
-
-class PieceMove
-{
-public:
-    PieceMove(LPiece *_piece = nullptr,
-              LGrid *_from = nullptr,
-              LGrid *_to = nullptr,
-              LPiece *rem = nullptr,
-              bool _extra = false,
-              bool fake = false);
-
-    LPiece *lpiece;
-    LGrid *from, *to;
-    LPiece *removed;
-    int isNull() const;
-    bool extra, fake;
-    bool operator==(PieceMove &);
-};
-
-
-
 class Board : public QGraphicsScene
 {
     Q_OBJECT
@@ -125,21 +104,4 @@ protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
 };
 
-class AIThread : public QThread
-{
-    Board *board;
-    qint64 totalIterations;
-    bool interrupted {false};
-public:
-    PieceMove bestMove;
-    AIThread(Board *board);
-    /* virtual */ void run();
-    int minimax(LBoard *lboard,
-                int depth,
-                int alpha = MIN_SCORE,
-                int beta = MAX_SCORE);
-    QVector<PieceMove> getBestMoves(LBoard *lboard, int depth);
-    bool isInterrupted() const;
-    void setInterrupted(bool value);
-};
 
